@@ -37,9 +37,11 @@ _Result _run(int seed, {int items = 300, int budget = 90, int days = 90, double 
         if (subject == 1 || subject >= 3) examB,
       ];
   final result = _Result();
+  final openDays = <int>[];
 
   for (var t = 0; t < days; t++) {
     if (rnd.nextDouble() < miss) continue;
+    openDays.add(t);
     final today = day(t);
 
     PlanInput input() => PlanInput(today: today, budget: budget, items: [
@@ -114,6 +116,8 @@ _Result _run(int seed, {int items = 300, int budget = 90, int days = 90, double 
     for (final e in examsFor(s.subject)) {
       final examDay = t0.daysUntil(e.date);
       if (examDay > days || examDay - first < 3) continue;
+      // A review is only possible if the app was opened in between.
+      if (!openDays.any((d) => d > first && d < examDay)) continue;
       if (!s.reviewDays.any((r) => r > first && r < examDay)) result.missedBeforeExam++;
     }
   }

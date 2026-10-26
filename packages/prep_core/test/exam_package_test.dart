@@ -265,6 +265,12 @@ void main() {
     expect(st1.reviewCount, 1);
   });
 
+  test('copyWith, file size limit and unknown event type', () {
+    expect(sample().exam.copyWith(name: 'X').name, 'X');
+    expect(() => ExamPackage.decode(' ' * (examFileMaxBytes + 1)), throwsFormatException);
+    expect(() => _ev('z', 'st1', 'bogus', 0).toStudyEvent(), throwsFormatException);
+  });
+
   test('firstFreeName', () {
     expect(firstFreeName('Polity', ['History']), 'Polity');
     expect(firstFreeName('Polity', ['polity', 'Polity 2']), 'Polity 3');

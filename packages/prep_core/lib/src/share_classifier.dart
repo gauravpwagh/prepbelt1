@@ -114,8 +114,7 @@ List<ShareDraft> classifyShare({
 
   for (final f in files) {
     final name = _nonEmpty(f.name);
-    final useSubject = subj != null && t == null && files.length == 1;
-    final title = useSubject
+    final String title = (subj != null && t == null && files.length == 1)
         ? subj
         : (name != null ? _stripExtension(name) : 'Shared PDF');
     drafts.add(ShareDraft(

@@ -143,9 +143,11 @@ def simulate(seed, n_items=300, budget=90, days=90, miss=0.15):
     items = [Item(k, rnd.choice([20, 30, 30, 30, 40, 50]), k % 6, k) for k in range(n_items)]
     exams = [({0, 1, 2}, 45), ({3, 4, 5}, 80), ({1}, 80)]  # subject 1 shared
     worst_ratio, worst_exam_week, reviewed_before = 0.0, 0.0, {}
+    open_days = []
     for today in range(days):
         if rnd.random() < miss:
             continue
+        open_days.append(today)
         plan = build_plan(items, exams, today, budget)
         if plan["waiting"]:
             moves, _ = propose(items, exams, today, plan)
@@ -173,6 +175,8 @@ def simulate(seed, n_items=300, budget=90, days=90, miss=0.15):
             continue
         for subj, d in exams:
             if i.subject in subj and d <= days and d - i.first_study_day >= 3:
+                if not any(i.first_study_day < o < d for o in open_days):
+                    continue  # app never opened in between: no review was possible
                 if not any(i.first_study_day < r < d for r in reviewed_before.get(i.id, [])):
                     misses += 1
     studied = sum(1 for i in items if i.first_study_day is not None)

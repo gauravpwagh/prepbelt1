@@ -94,4 +94,8 @@ void main() {
     expect(p.assignments.every((a) => a.date <= day(3)), isTrue);
     expect(p.wontFit['x1'], greaterThan(0));
   });
+
+  test('Assignment.toString', () {
+    expect(Assignment('a', day(1)).toString(), 'Assignment(a → ${day(1)})');
+  });
 }

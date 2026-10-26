@@ -209,7 +209,9 @@ ImportIdPlan planIds(ExamPackage p, ExistingIds existing) {
 }
 
 /// Gives new IDs to [subjectIds] and everything under them, rewriting all
-/// references. Batch IDs are remapped consistently across the whole file.
+/// references. Batch IDs on moved events get new IDs (same old ID → same new
+/// ID); events of other subjects keep theirs. A batch only groups events for
+/// "Undo catch-up" on the day it was made, so a split batch is harmless.
 ExamPackage remapSubjects(ExamPackage p, Set<String> subjectIds, String Function() newId) {
   final map = <String, String>{};
   for (final id in subjectIds) {
