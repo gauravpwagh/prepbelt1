@@ -1,0 +1,14 @@
+name: prep_core
+description: Pure Dart rules for PrepBelt — belts, exam cap, planner, catch-up, share classification and exam files.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  collection: ^1.19.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  test: ^1.25.0

@@ -1,0 +1,13 @@
+name: prepbelt_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+# `app` is added to this list in milestone M3, after `flutter create`.
+workspace:
+  - packages/prep_core
+
+dev_dependencies:
+  coverage: ^1.11.0
+  lints: ^5.0.0

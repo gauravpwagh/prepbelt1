@@ -1,0 +1,22 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+pubspec_overrides.yaml
+*.g.dart
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Python check scripts
+__pycache__/
+
+# Kept on purpose (do not ignore):
+#   app/drift_schemas/
+#   app/lib/data/db/app_database.steps.dart
