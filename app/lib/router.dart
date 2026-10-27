@@ -14,6 +14,10 @@ import 'features/onboarding/onboarding_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/today/today_screen.dart';
 
+/// The root navigator, for sheets shown from outside the widget tree
+/// (the Finish sheet on launch and resume).
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 /// Extra top-level routes from later milestones (e.g. `/exams/import`).
 final extraRoutesProvider = Provider<List<RouteBase>>((ref) => const []);
 
@@ -25,6 +29,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(done.dispose);
 
   final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/today',
     refreshListenable: done,
     redirect: (context, state) {

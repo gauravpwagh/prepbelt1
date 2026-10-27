@@ -8,15 +8,22 @@ import '../application/add_item.dart';
 import '../application/build_today_plan.dart';
 import '../application/complete_onboarding.dart';
 import '../application/delete_item.dart';
+import '../application/discard_session.dart';
 import '../application/explain_due.dart';
+import '../application/finish_session.dart';
 import '../application/grade_review.dart';
 import '../application/mark_studied.dart';
+import '../application/reconcile_notifications.dart';
 import '../application/save_exam.dart';
 import '../application/split_item.dart';
+import '../application/start_session.dart';
 import '../application/undo_latest.dart';
 import '../data/db/app_database.dart';
 import '../data/study_writer.dart';
 import '../platform/clock.dart';
+import '../platform/device_status.dart';
+import '../platform/notification_port.dart';
+import '../platform/source_opener.dart';
 
 /// Overridden by `bootstrap()` with the opened database.
 final appDatabaseProvider = Provider<AppDatabase>(
@@ -130,3 +137,33 @@ class OnboardingDone extends Notifier<bool> {
 
   void set(bool done) => state = done;
 }
+
+// ---- platform ports ----
+
+final notificationPortProvider =
+    Provider<NotificationPort>((ref) => LocalNotificationPort());
+
+final deviceStatusProvider = Provider<DeviceStatus>((ref) => const AndroidDeviceStatus());
+
+final sourceOpenerProvider = Provider<SourceOpener>((ref) => const NoopSourceOpener());
+
+// ---- sessions and notifications ----
+
+final startSessionProvider = Provider<StartSession>((ref) => StartSession(
+    ref.watch(appDatabaseProvider),
+    ref.watch(notificationPortProvider),
+    ref.watch(sourceOpenerProvider),
+    newId: ref.watch(idGeneratorProvider),
+    now: _now(ref)));
+
+final finishSessionProvider = Provider<FinishSession>((ref) => FinishSession(
+    ref.watch(appDatabaseProvider), ref.watch(notificationPortProvider),
+    now: _now(ref)));
+
+final discardSessionProvider = Provider<DiscardSession>((ref) => DiscardSession(
+    ref.watch(appDatabaseProvider), ref.watch(notificationPortProvider),
+    now: _now(ref)));
+
+final reconcileNotificationsProvider = Provider<ReconcileNotifications>((ref) =>
+    ReconcileNotifications(ref.watch(appDatabaseProvider), ref.watch(notificationPortProvider),
+        now: _now(ref)));

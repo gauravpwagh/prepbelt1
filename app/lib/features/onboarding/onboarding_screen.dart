@@ -28,7 +28,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ref.watch(onboardingStepsProvider);
+    final steps = <OnboardingStep>[
+      (context, next) => _PermissionStep(next: next),
+      (context, next) => _BatteryStep(next: next),
+      ...ref.watch(onboardingStepsProvider),
+    ];
     final restore = ref.watch(restoreLauncherProvider);
     final Widget body;
     if (_page == 0) {
@@ -220,4 +224,91 @@ class _FirstExamFormState extends ConsumerState<_FirstExamForm> {
       ),
     ]);
   }
+}
+
+class _StepPage extends StatelessWidget {
+  const _StepPage({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.primary,
+    required this.onPrimary,
+    required this.onSkip,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+  final String primary;
+  final VoidCallback onPrimary;
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Spacer(),
+        Icon(icon, size: 56),
+        const SizedBox(height: 16),
+        Text(title, style: text.headlineSmall, textAlign: TextAlign.center),
+        const SizedBox(height: 8),
+        Text(body, style: text.bodyLarge, textAlign: TextAlign.center),
+        const Spacer(),
+        FilledButton(key: Key('step-$primary'), onPressed: onPrimary, child: Text(primary)),
+        TextButton(key: const Key('step-skip'), onPressed: onSkip, child: const Text('Not now')),
+      ]),
+    );
+  }
+}
+
+/// Asks once for the notification permission (Android 13+).
+class _PermissionStep extends ConsumerWidget {
+  const _PermissionStep({required this.next});
+  final VoidCallback next;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _StepPage(
+        icon: Icons.notifications_active_outlined,
+        title: 'Reminders and the study timer',
+        body: 'PrepBelt reminds you when your plan is ready and shows a running clock '
+            'while you study in another app.',
+        primary: 'Allow notifications',
+        onPrimary: () async {
+          try {
+            await ref.read(notificationPortProvider).requestPermission();
+            await ref.read(reconcileNotificationsProvider)();
+          } finally {
+            next();
+          }
+        },
+        onSkip: next,
+      );
+}
+
+/// Explains battery optimisation and opens the system screen (design §9).
+class _BatteryStep extends ConsumerWidget {
+  const _BatteryStep({required this.next});
+  final VoidCallback next;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _StepPage(
+        icon: Icons.battery_saver_outlined,
+        title: 'Keep reminders on time',
+        body: 'Some phones stop apps in the background, which can delay reminders. '
+            "On the next screen, find PrepBelt and choose 'Don't optimise' "
+            '(or "Unrestricted").',
+        primary: 'Open battery settings',
+        onPrimary: () async {
+          try {
+            await ref.read(deviceStatusProvider).openBatterySettings();
+          } catch (_) {
+            // Not every phone has this screen; the explainer is enough.
+          } finally {
+            next();
+          }
+        },
+        onSkip: next,
+      );
 }

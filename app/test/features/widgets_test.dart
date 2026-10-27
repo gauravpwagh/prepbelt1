@@ -28,7 +28,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   }
 
-  testWidgets('Today lists the plan and marks a first reading studied', (tester) async {
+  testWidgets('CUJ 3a: Start, come back 38 minutes later, Finish → Red', (tester) async {
     await f.seedTree();
     await pumpApp(tester);
 
@@ -36,38 +36,72 @@ void main() {
     expect(find.text('k1 · st1'), findsOneWidget);
     expect(find.textContaining('min new reading'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('row-action-st1')));
+    await tester.tap(find.byKey(const Key('start-st1')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('studied-minutes')), findsOneWidget);
-    await tester.enterText(find.byKey(const Key('studied-minutes')), '25');
-    await tester.tap(find.byKey(const Key('studied-save')));
+    expect(find.byKey(const Key('session-banner')), findsOneWidget);
+
+    f.clock.advance(const Duration(minutes: 38));
+    await tester.tap(find.byKey(const Key('finish-st1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Studied 38 min'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('finish-confirm')));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Red · next review'), findsOneWidget);
     expect((await f.db.itemStateDao.stateOf('st1')).belt, Belt.red);
-    expect(find.byKey(const Key('row-action-st1')), findsNothing);
+    expect(find.byKey(const Key('session-banner')), findsNothing);
     await tearDownApp(tester);
   });
 
-  testWidgets('Grade sheet shows definitions and next dates, and saves', (tester) async {
+  testWidgets('Finish on a review opens the grade sheet with the minutes', (tester) async {
     await f.seedTree();
     await f.writer.writeFirstStudy('k2', 30);
     f.clock.advance(const Duration(days: 1));
     c.invalidate(todayProvider);
     await pumpApp(tester);
 
-    expect(find.text('Review'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('row-action-k2')));
+    await tester.tap(find.byKey(const Key('start-k2')));
     await tester.pumpAndSettle();
+    f.clock.advance(const Duration(minutes: 9));
+    await tester.tap(find.byKey(const Key('finish-k2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finish-confirm')));
+    await tester.pumpAndSettle();
+
     expect(find.text(Grade.solid.definition), findsOneWidget);
     expect(find.text(Grade.forgot.definition), findsOneWidget);
     expect(find.textContaining('Next: '), findsNWidgets(3));
     expect(find.textContaining('in 3 days'), findsOneWidget); // Solid at Red → Orange
+    expect(tester.widget<TextField>(find.byKey(const Key('grade-minutes'))).controller!.text, '9');
 
     await tester.tap(find.byKey(const Key('grade-solid')));
     await tester.pumpAndSettle();
     expect((await f.db.itemStateDao.stateOf('k2')).belt, Belt.orange);
     expect(find.textContaining('Solid at Red → Orange'), findsOneWidget);
+    final e = (await f.db.eventsDao.eventsFor('k2')).last as Review;
+    expect(e.sessionId, isNotNull);
+    expect(e.minutes, 9);
+    await tearDownApp(tester);
+  });
+
+  testWidgets('Item screen: mark studied without a timer, then undo', (tester) async {
+    await f.seedTree();
+    await pumpApp(tester);
+    await tester.tap(find.text('k2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('item-record')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('studied-save')));
+    await tester.pumpAndSettle();
+    expect((await f.db.itemStateDao.stateOf('k2')).belt, Belt.red);
+
+    await tester.tap(find.byKey(const Key('why-due')));
+    await tester.pumpAndSettle();
+    expect(find.text('First read → Red. Next review in 1 day.'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('item-undo')));
+    await tester.pumpAndSettle();
+    expect((await f.db.itemStateDao.stateOf('k2')).belt, Belt.unread);
     await tearDownApp(tester);
   });
 
@@ -106,6 +140,10 @@ void main() {
     await tester.tap(find.byKey(const Key('ob-studied')));
     await tester.ensureVisible(find.byKey(const Key('ob-continue')));
     await tester.tap(find.byKey(const Key('ob-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('step-Allow notifications')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('step-skip')));
     await tester.pumpAndSettle();
 
     expect(find.text('Today'), findsWidgets);

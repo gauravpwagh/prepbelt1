@@ -5,10 +5,14 @@ import 'package:logging/logging.dart';
 
 import 'core/providers.dart';
 import 'core/sheets.dart';
+import 'core/slots.dart';
 import 'core/theme/app_theme.dart';
 import 'data/integrity.dart';
 import 'features/grade/grade_sheet.dart';
 import 'features/grade/studied_sheet.dart';
+import 'features/session/finish_sheet.dart';
+import 'features/session/start_button.dart';
+import 'features/settings/settings_providers.dart';
 import 'router.dart';
 
 final _log = Logger('app');
@@ -17,6 +21,10 @@ final _log = Logger('app');
 /// the extension points in `core/sheets.dart` and `core/slots.dart`.
 final List<Override> appOverrides = [
   appSheetsProvider.overrideWithValue(const _Sheets()),
+  planRowActionProvider.overrideWithValue(
+      (context, nodeId, {required unread}) => StartButton(nodeId: nodeId)),
+  todayBannersProvider.overrideWithValue(const [SessionBanner()]),
+  reminderChangedProvider.overrideWith((ref) => ref.read(reconcileNotificationsProvider).call),
 ];
 
 class _Sheets implements AppSheets {
@@ -38,7 +46,25 @@ final afterFirstFrameProvider = Provider<List<Future<void> Function()>>((ref) =>
         final r = await runIntegrityCheck(ref.read(appDatabaseProvider));
         if (!r.ok) _log.severe('$r');
       },
+      () => ref.read(reconcileNotificationsProvider)(),
+      () async {
+        final route = await ref.read(notificationPortProvider).launchRoute();
+        if (route != null && ref.read(onboardingDoneProvider)) ref.read(routerProvider).go(route);
+      },
     ]);
+
+/// With an open session, launching or resuming the app brings back the
+/// Finish sheet over Today (CUJ 3a).
+Future<void> showFinishIfOpen(Ref ref) async {
+  if (!ref.read(onboardingDoneProvider)) return;
+  if (await ref.read(appDatabaseProvider).sessionsDao.open() == null) return;
+  ref.read(routerProvider).go('/today');
+  await Future<void>.delayed(Duration.zero);
+  final context = rootNavigatorKey.currentContext;
+  if (context != null && context.mounted) await showFinishSheet(context);
+}
+
+final showFinishIfOpenProvider = Provider<Future<void> Function()>((ref) => () => showFinishIfOpen(ref));
 
 class PrepBeltApp extends ConsumerStatefulWidget {
   const PrepBeltApp({super.key});
@@ -53,7 +79,10 @@ class _PrepBeltAppState extends ConsumerState<PrepBeltApp> with WidgetsBindingOb
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      for (final task in ref.read(afterFirstFrameProvider)) {
+      for (final task in [
+        ...ref.read(afterFirstFrameProvider),
+        ref.read(showFinishIfOpenProvider),
+      ]) {
         try {
           await task();
         } catch (e, st) {
@@ -72,7 +101,10 @@ class _PrepBeltAppState extends ConsumerState<PrepBeltApp> with WidgetsBindingOb
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // A new study day may have started while the app was in the background.
-    if (state == AppLifecycleState.resumed) ref.invalidate(todayProvider);
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(todayProvider);
+      ref.read(showFinishIfOpenProvider)();
+    }
   }
 
   @override

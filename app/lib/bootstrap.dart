@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'app.dart';
 import 'core/providers.dart';
 import 'data/db/app_database.dart';
+import 'router.dart';
 
 final _log = Logger('bootstrap');
 
@@ -43,5 +44,13 @@ Future<ProviderContainer> bootstrap() async {
       newId: container.read(idGeneratorProvider),
       now: container.read(clockProvider).nowUtc());
   if (onboarded) await container.read(buildTodayPlanProvider).get();
+
+  try {
+    await container
+        .read(notificationPortProvider)
+        .init((route) => container.read(routerProvider).go(route));
+  } catch (e, st) {
+    _log.warning('Notifications unavailable', e, st);
+  }
   return container;
 }
