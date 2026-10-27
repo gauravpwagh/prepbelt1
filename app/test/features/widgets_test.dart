@@ -148,8 +148,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('step-skip')));
     await tester.pumpAndSettle();
+    expect(find.text('Choose a backup folder'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('step-skip')));
+    await tester.pumpAndSettle();
 
     expect(find.text('Today'), findsWidgets);
+    expect(find.byKey(const Key('backup-banner')), findsOneWidget);
     expect(find.text('Laxmikant Ch 1–5'), findsOneWidget);
     expect(find.byIcon(Icons.check_circle), findsOneWidget);
     await tearDownApp(tester);

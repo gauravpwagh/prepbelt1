@@ -1,5 +1,8 @@
 // Root providers: the single place where the app is wired (plan item 50).
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:prep_core/prep_core.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
@@ -7,6 +10,7 @@ import 'package:uuid/uuid.dart';
 import '../application/add_item.dart';
 import '../application/build_today_plan.dart';
 import '../application/capture_shared.dart';
+import '../application/catch_up.dart';
 import '../application/complete_onboarding.dart';
 import '../application/delete_item.dart';
 import '../application/discard_session.dart';
@@ -16,12 +20,17 @@ import '../application/grade_review.dart';
 import '../application/mark_studied.dart';
 import '../application/reconcile_notifications.dart';
 import '../application/relink_sources.dart';
+import '../application/restore_backup.dart';
+import '../application/run_backup.dart';
 import '../application/save_exam.dart';
 import '../application/source_folders.dart';
 import '../application/split_item.dart';
 import '../application/start_session.dart';
 import '../application/undo_latest.dart';
+import '../data/backup/backup_service.dart';
+import '../data/backup/restore_service.dart';
 import '../data/db/app_database.dart';
+import '../data/db/db_file.dart';
 import '../data/study_writer.dart';
 import '../platform/clock.dart';
 import '../platform/device_status.dart';
@@ -29,10 +38,15 @@ import '../platform/folder_access.dart';
 import '../platform/notification_port.dart';
 import '../platform/share_receiver.dart';
 import '../platform/source_opener.dart';
+import 'app_info.dart';
 
-/// Overridden by `bootstrap()` with the opened database.
-final appDatabaseProvider = Provider<AppDatabase>(
-    (ref) => throw UnimplementedError('appDatabaseProvider is set in bootstrap'));
+/// The open database. Restore closes it, swaps the file and invalidates this
+/// provider, which opens the restored file (design §8). Tests override it.
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase.open();
+  ref.onDispose(db.close);
+  return db;
+});
 
 final clockProvider = Provider<Clock>((ref) => const SystemClock());
 
@@ -192,3 +206,61 @@ final discardSessionProvider = Provider<DiscardSession>((ref) => DiscardSession(
 final reconcileNotificationsProvider = Provider<ReconcileNotifications>((ref) =>
     ReconcileNotifications(ref.watch(appDatabaseProvider), ref.watch(notificationPortProvider),
         now: _now(ref)));
+
+// ---- backups, restore and catch-up ----
+
+/// The cache and app-private directories; tests override them.
+final cacheDirProvider = Provider<Future<Directory> Function()>((ref) => getTemporaryDirectory);
+final privateDirProvider =
+    Provider<Future<Directory> Function()>((ref) => getApplicationSupportDirectory);
+final databaseFileProvider = Provider<Future<File> Function()>((ref) => databaseFile);
+
+final backupServiceProvider = Provider<BackupService>((ref) {
+  final offset = ref.watch(offsetFnProvider);
+  return BackupService(
+    ref.watch(appDatabaseProvider),
+    ref.watch(folderAccessProvider),
+    cacheDir: ref.watch(cacheDirProvider),
+    privateDir: ref.watch(privateDirProvider),
+    appVersion: appVersion,
+    now: _now(ref),
+    toLocal: (utc) => utc.add(offset(utc)),
+  );
+});
+
+final runBackupProvider = Provider<RunBackup>((ref) => RunBackup(
+    ref.watch(appDatabaseProvider), ref.watch(backupServiceProvider), ref.watch(sourceFoldersProvider)));
+
+final catchUpProvider = Provider<CatchUp>((ref) => CatchUp(
+    ref.watch(appDatabaseProvider),
+    ref.watch(studyWriterProvider),
+    ref.watch(buildTodayPlanProvider),
+    ref.watch(localDayClockProvider),
+    newId: ref.watch(idGeneratorProvider)));
+
+/// Restore replaces the database under every provider, so it is built from
+/// the root container rather than from a provider that would be reset
+/// mid-restore.
+RestoreBackup restoreBackupFor(ProviderContainer c) => RestoreBackup(
+      folders: c.read(folderAccessProvider),
+      service: RestoreService(dbFile: c.read(databaseFileProvider)),
+      backups: c.read(backupServiceProvider),
+      cacheDir: c.read(cacheDirProvider),
+      closeDatabase: () => c.read(appDatabaseProvider).close(),
+      reopenDatabase: () async {
+        c.invalidate(appDatabaseProvider);
+        return c.read(appDatabaseProvider);
+      },
+      newId: c.read(idGeneratorProvider),
+      now: c.read(clockProvider).nowUtc,
+    );
+
+/// After a restore: re-seed settings-backed state and rebuild today.
+Future<void> afterRestore(ProviderContainer c) async {
+  final settings = c.read(appDatabaseProvider).settingsDao;
+  c.read(dayStartHourProvider.notifier).set(await settings.dayStartHour());
+  c.invalidate(todayProvider);
+  await c.read(buildTodayPlanProvider).refresh();
+  await c.read(reconcileNotificationsProvider)();
+  c.read(onboardingDoneProvider.notifier).set(await settings.onboardingDone());
+}

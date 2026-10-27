@@ -1,13 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'app.dart';
 import 'core/providers.dart';
-import 'data/db/app_database.dart';
+import 'data/backup/pre_migration_backup.dart';
 import 'router.dart';
 
 final _log = Logger('bootstrap');
@@ -28,12 +31,12 @@ Future<ProviderContainer> bootstrap() async {
     tz.setLocalLocation(tz.UTC);
   }
 
-  final db = AppDatabase.open();
   final container = ProviderContainer(overrides: [
-    appDatabaseProvider.overrideWithValue(db),
     tzIdProvider.overrideWithValue(tzId),
     ...appOverrides,
   ]);
+  await _preMigrationBackup(container);
+  final db = container.read(appDatabaseProvider);
 
   final settings = db.settingsDao;
   container.read(dayStartHourProvider.notifier).set(await settings.dayStartHour());
@@ -53,4 +56,31 @@ Future<ProviderContainer> bootstrap() async {
     _log.warning('Notifications unavailable', e, st);
   }
   return container;
+}
+
+/// Design §8: before Drift opens (and migrates) an older file, copy it out.
+Future<void> _preMigrationBackup(ProviderContainer c) async {
+  try {
+    final now = c.read(clockProvider).nowUtc();
+    final copy = PreMigrationBackup.runIfNeeded(
+      await c.read(databaseFileProvider)(),
+      cacheDir: await c.read(cacheDirProvider)(),
+      localNow: now.add(c.read(offsetFnProvider)(now)),
+    );
+    if (copy == null) return;
+    final name = p.basename(copy.file.path);
+    try {
+      if (copy.backupTreeUri != null) {
+        await c.read(folderAccessProvider).writeFile(copy.backupTreeUri!, name, copy.file);
+      } else {
+        final dir = Directory(p.join((await c.read(privateDirProvider)()).path, 'backups'));
+        await dir.create(recursive: true);
+        await copy.file.copy(p.join(dir.path, name));
+      }
+    } finally {
+      await copy.file.delete();
+    }
+  } catch (e, st) {
+    _log.severe('Pre-migration backup failed', e, st);
+  }
 }

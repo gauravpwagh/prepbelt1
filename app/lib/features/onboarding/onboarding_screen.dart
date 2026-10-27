@@ -7,6 +7,8 @@ import '../../core/format.dart';
 import '../../core/labels.dart';
 import '../../core/providers.dart';
 import '../../core/slots.dart';
+import '../../core/widgets/restore_flow.dart';
+import '../../platform/folder_access.dart';
 import 'onboarding_providers.dart';
 
 /// CUJ 1: Start fresh (or Restore) → exam, subject, minutes, first item →
@@ -31,18 +33,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final steps = <OnboardingStep>[
       (context, next) => _PermissionStep(next: next),
       (context, next) => _BatteryStep(next: next),
+      (context, next) => _BackupStep(next: next),
       ...ref.watch(onboardingStepsProvider),
     ];
-    final restore = ref.watch(restoreLauncherProvider);
     final Widget body;
     if (_page == 0) {
       body = _Welcome(
         onFresh: _next,
-        onRestore: restore == null
-            ? null
-            : () async {
-                if (await restore(context)) _finish();
-              },
+        onRestore: () async {
+          if (await runRestoreFlow(context)) _finish();
+        },
       );
     } else if (_page == 1) {
       body = _FirstExamForm(onDone: steps.isEmpty ? _finish : _next);
@@ -305,6 +305,34 @@ class _BatteryStep extends ConsumerWidget {
             await ref.read(deviceStatusProvider).openBatterySettings();
           } catch (_) {
             // Not every phone has this screen; the explainer is enough.
+          } finally {
+            next();
+          }
+        },
+        onSkip: next,
+      );
+}
+
+/// After the first item is saved, asks for a backup folder (CUJ 1). Skipping
+/// leaves the Today banner as a reminder.
+class _BackupStep extends ConsumerWidget {
+  const _BackupStep({required this.next});
+  final VoidCallback next;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _StepPage(
+        icon: Icons.backup_outlined,
+        title: 'Choose a backup folder',
+        body: 'PrepBelt backs up every day. Pick a folder your cloud-drive app syncs, '
+            'so a new phone can restore everything.',
+        primary: 'Choose folder',
+        onPrimary: () async {
+          try {
+            await ref.read(runBackupProvider).chooseFolder();
+          } on FolderException catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+            }
           } finally {
             next();
           }

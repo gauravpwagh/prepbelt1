@@ -19,7 +19,3 @@ final todayBannersProvider = Provider<List<Widget>>((ref) => const []);
 typedef OnboardingStep = Widget Function(BuildContext context, VoidCallback next);
 
 final onboardingStepsProvider = Provider<List<OnboardingStep>>((ref) => const []);
-
-/// "Restore from backup" on the first onboarding page; null hides it.
-final restoreLauncherProvider =
-    Provider<Future<bool> Function(BuildContext context)?>((ref) => null);

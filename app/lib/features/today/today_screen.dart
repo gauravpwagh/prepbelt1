@@ -10,6 +10,8 @@ import '../../core/slots.dart';
 import '../../core/widgets/belt_chip.dart';
 import '../../core/widgets/minutes_text.dart';
 import 'today_providers.dart';
+import 'widgets/backup_banner.dart';
+import 'widgets/catch_up_card.dart';
 
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
@@ -63,6 +65,8 @@ class _TodayBody extends ConsumerWidget {
             child: Text('${formatMinutes(view.doneMinutes)} done', style: text.bodySmall),
           ),
         ...banners,
+        const CatchUpCard(),
+        const BackupBanner(),
         if (view.waitingCount > 0)
           ListTile(
             key: const Key('today-waiting'),

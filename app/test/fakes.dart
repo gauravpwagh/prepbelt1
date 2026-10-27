@@ -104,7 +104,9 @@ class FakeFolderAccess implements FolderAccess {
 
   @override
   Future<void> writeFile(String treeUri, String name, File file, {String mime = ''}) async {
-    trees.putIfAbsent(treeUri, () => {})[name] = await file.length();
+    final t = trees[treeUri];
+    if (t == null) throw const FolderException(FolderError.noPermission, 'No access');
+    t[name] = await file.length();
     (written[treeUri] ??= []).add(name);
   }
 

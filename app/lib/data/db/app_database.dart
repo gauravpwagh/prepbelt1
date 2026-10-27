@@ -14,6 +14,7 @@ import '../daos/settings_dao.dart';
 import '../daos/sources_dao.dart';
 import '../daos/subjects_dao.dart';
 import 'converters.dart';
+import 'db_file.dart';
 import 'tables.dart';
 
 part 'app_database.g.dart';
@@ -48,7 +49,21 @@ class AppDatabase extends _$AppDatabase {
 
   /// Opens `prepbelt.sqlite` in the app's files directory. Drift runs its
   /// queries in a background isolate.
-  factory AppDatabase.open() => AppDatabase(driftDatabase(name: 'prepbelt'));
+  factory AppDatabase.open() => AppDatabase(driftDatabase(
+        name: 'prepbelt',
+        native: DriftNativeOptions(databasePath: () async => (await databaseFile()).path),
+      ));
+
+  var _closed = false;
+
+  /// Safe to call more than once (restore closes the database before the
+  /// provider that owns it is reset).
+  @override
+  Future<void> close() async {
+    if (_closed) return;
+    _closed = true;
+    await super.close();
+  }
 
   static const currentSchema = 1;
 

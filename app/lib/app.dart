@@ -55,6 +55,9 @@ final afterFirstFrameProvider =
             if (!r.ok) _log.severe('$r');
           },
           () => ref.read(reconcileNotificationsProvider)(),
+      () async {
+        if (ref.read(onboardingDoneProvider)) await ref.read(runBackupProvider).ifDue();
+      },
           () async {
             final route =
                 await ref.read(notificationPortProvider).launchRoute();

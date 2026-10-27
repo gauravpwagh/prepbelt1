@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
 import 'settings_providers.dart';
+import 'widgets/backup_section.dart';
 import 'widgets/source_folders_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -82,6 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                 if (t != null) await actions.setReminderTime(t.hour, t.minute);
               },
             ),
+            const BackupSection(),
             const SourceFoldersSection(),
             ListTile(
               leading: const Icon(Icons.health_and_safety_outlined),
