@@ -61,7 +61,7 @@ The expected list is `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `VIBRATE` (
     * **Target audience:** 18 and over is the simplest. Competitive-exam aspirants are adults, and choosing under-13 brings in Families policy requirements.
     * **Data safety:** see the answers below.
     * **Government app, financial features, health:** no.
-3. **Store listing:** use the text in [store-listing.md](store-listing.md). The 512×512 icon is ready: [play-icon-512.png](play-icon-512.png), drawn from the launcher icon in `app/android/app/src/main/res/drawable/ic_launcher_foreground.xml`. Graphics you still need to make:
+3. **Store listing:** use the text in [store-listing.md](store-listing.md). The 512×512 icon is ready: [play-icon-512.png](play-icon-512.png), generated with the launcher icon by `python tool/make_icon.py`. Graphics you still need to make:
     * a 1024×500 feature graphic;
     * at least two phone screenshots (Today, Library and the grade sheet work well).
 4. **Testing → Internal testing:** create an email list of testers, upload `app-release.aab`, paste the release notes from [store-listing.md](store-listing.md), then **Review and roll out**.
