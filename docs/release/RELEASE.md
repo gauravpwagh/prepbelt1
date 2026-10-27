@@ -54,7 +54,7 @@ The expected list is `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `VIBRATE` (
 
 1. **Create app:** name "PrepBelt", app (not game), free.
 2. **App content:**
-    * **Privacy policy:** host [privacy-policy.md](privacy-policy.md), for example on GitHub Pages, and enter its URL.
+    * **Privacy policy:** enter the URL in [store-listing.md](store-listing.md) (the GitHub page of [privacy-policy.md](privacy-policy.md)).
     * **Ads:** no.
     * **App access:** all features are available without special access (no login).
     * **Content rating:** questionnaire, category Education/Reference. No violence, user interaction or location sharing. Expected rating: Everyone / PEGI 3.

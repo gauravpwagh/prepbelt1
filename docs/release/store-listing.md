@@ -4,6 +4,12 @@
 
 PrepBelt
 
+## Privacy policy URL
+
+https://github.com/gauravpwagh/prepbelt/blob/main/docs/release/privacy-policy.md
+
+The repository is public, so this page is readable without signing in. It is the file [privacy-policy.md](privacy-policy.md); edit that file to change the policy.
+
 ## Short description (80 characters max)
 
 Plan exam prep in minutes. Review on a belt ladder from Red to Green.

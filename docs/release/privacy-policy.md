@@ -1,6 +1,6 @@
 # PrepBelt privacy policy
 
-*Effective date: [fill in before publishing]*
+*Effective date: 27 October 2026*
 
 PrepBelt is a study planner that works entirely on your phone. This policy explains what happens to the information you put into it.
 
