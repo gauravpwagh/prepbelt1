@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon layer (Android 13+): the same belt in one colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M24,46h22v14h-22z M62,46h22v14h-22z M46,42h16v22h-16z M47,58l-7,22l7,0l6,-20z M61,58l7,22l-7,0l-6,-20z"/>
+</vector>

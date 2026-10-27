@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A belt in the five ladder colours (Red → Green) with a knot, inside the
+     66dp safe zone of a 108dp adaptive icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#C62828" android:pathData="M24,46h12v14h-12z"/>
+    <path android:fillColor="#EF6C00" android:pathData="M36,46h12v14h-12z"/>
+    <path android:fillColor="#F9A825" android:pathData="M60,46h12v14h-12z"/>
+    <path android:fillColor="#7CB342" android:pathData="M72,46h12v14h-12z"/>
+    <!-- Tails -->
+    <path android:fillColor="#2E7D32" android:pathData="M47,58l-7,22l7,0l6,-20z"/>
+    <path android:fillColor="#2E7D32" android:pathData="M61,58l7,22l-7,0l-6,-20z"/>
+    <!-- Knot -->
+    <path android:fillColor="#2E7D32" android:pathData="M46,42h16v22h-16z"/>
+    <path android:fillColor="#1B5E20" android:pathData="M50,46h8v14h-8z"/>
+</vector>

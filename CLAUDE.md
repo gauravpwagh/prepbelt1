@@ -34,6 +34,10 @@ All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 1
 | M6b exam files | Done: export, import with clash choices, copy as new attempt, archive and remove. |
 | M7 diagnostics | Done: rotating logs, crash.log, Share logs, Diagnostics, 5k-item seed. |
 
+## Releasing
+
+See [docs/release/RELEASE.md](docs/release/RELEASE.md): the upload key (`app/android/key.properties`, never committed), building the app bundle, Play Console answers, store text and the tester checklist. Release builds without `key.properties` are debug-signed and cannot be uploaded.
+
 ## Not yet verified (needs a device)
 
 *   **Integration tests** (`app/integration_test/`): all three pass on the local Pixel 9 API 35 emulator (`flutter test integration_test -d emulator-5554`). The plan also asks for API 26 and API 36 runs; no such emulators exist here yet.
