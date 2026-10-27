@@ -1,0 +1,25 @@
+name: prepbelt
+description: Offline exam prep with spaced review and belts.
+publish_to: none
+version: 0.1.0+1
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  drift: 2.34.0
+  drift_flutter: ^0.3.1
+  flutter:
+    sdk: flutter
+  prep_core: any
+
+dev_dependencies:
+  build_runner: ^2.15.1
+  drift_dev: 2.34.0
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

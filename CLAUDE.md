@@ -24,7 +24,8 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 | Milestone | State |
 | --- | --- |
 | M1 `packages/prep_core` (pure Dart rules and tests) | **Verified locally** (Flutter 3.41.6 / Dart 3.11.4): `dart analyze --fatal-infos` clean, 145 tests pass, coverage gate passes, `tool/sim/planner_check.py` exits 0. CI green; `flutter-version` pinned to 3.47.8. |
-| M2–M7 (app, data, UI, platform) | Not started |
+| M2 data layer (`app/lib/data`) | Done locally: schema v1 with CHECKs and indexes, nine DAOs, `StudyWriter`, integrity check, `drift_schema_v1.json`; 25 app tests pass. Backup/restore (plan 59–61) and exam export/import (62–63) are deferred to M6/M6b per the design's milestone table. |
+| M3–M7 (UI, platform) | Not started |
 
 ## First tasks, in order
 

@@ -9,15 +9,15 @@ An offline Android app (Flutter) for competitive-exam preparation. It tracks stu
 
 | Milestone | What | State |
 | --- | --- | --- |
-| M1 | `packages/prep_core`: belts, exam cap, planner, catch-up, share classifier, exam file format, with tests | Written; first `dart test` run pending (see below) |
-| M2 | Data layer (Drift) | Not started |
+| M1 | `packages/prep_core`: belts, exam cap, planner, catch-up, share classifier, exam file format, with tests | Done: analyzer clean, tests and coverage gate pass, CI green |
+| M2 | Data layer (Drift): schema v1, DAOs, `StudyWriter`, integrity check | Done (pending CI) |
 | M3 | Core screens | Not started |
 | M4 | Timer and notifications | Not started |
 | M5 | Folder access, sources, Share to app | Not started |
 | M6 / M6b | Backups, restore, catch-up UI; exam export/import | Not started |
 | M7 | Diagnostics, logging, performance | Not started |
 
-M1 was written in an environment without the Dart SDK. The planner and catch-up rules were checked with a Python port (`tool/sim/planner_check.py`), but the Dart tests have not been run yet. Run them first (see below) and fix anything that fails before starting M2.
+Local development currently uses Flutter 3.41.6; CI pins 3.47.8. On 3.41.6 the newest compatible Drift is 2.34.0, so `drift` and `drift_dev` are pinned to it in `app/pubspec.yaml`.
 
 ## Layout
 
@@ -27,7 +27,7 @@ packages/prep_core/   Pure Dart rules (no Flutter, Drift or dart:io)
                       catch_up, hierarchy, split, share_classifier,
                       exam_package, exam_import_rules, clock, local_date
   test/               unit, property and 90-day simulation tests
-app/                  Flutter app (created in M3)
+app/                  Flutter app (Android); lib/data/ is the Drift data layer
 tool/                 check_imports.dart, coverage_gate.dart, sim/planner_check.py
 docs/                 design and implementation plan
 ```

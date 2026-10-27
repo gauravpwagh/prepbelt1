@@ -4,8 +4,8 @@ publish_to: none
 environment:
   sdk: ^3.6.0
 
-# `app` is added to this list in milestone M3, after `flutter create`.
 workspace:
+  - app
   - packages/prep_core
 
 dev_dependencies:

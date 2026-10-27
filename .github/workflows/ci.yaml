@@ -40,11 +40,11 @@ jobs:
           dart pub global activate coverage
           dart pub global run coverage:test_with_coverage
 
-      # ---- app steps: active once app/ exists (milestone M3) ----
+      # ---- app steps: active once app/ exists (milestone M2) ----
       - name: Generate app code
         if: hashFiles('app/pubspec.yaml') != ''
         working-directory: app
-        run: dart run build_runner build -d
+        run: dart run build_runner build
 
       - name: Analyze app
         if: hashFiles('app/pubspec.yaml') != ''
@@ -69,7 +69,9 @@ jobs:
         working-directory: app
         run: |
           dart run drift_dev make-migrations
-          git diff --exit-code drift_schemas lib/data/db/app_database.steps.dart
+          # Fails on changed or new (untracked) snapshots, steps or migration tests.
+          git status --porcelain -- drift_schemas lib/data/db test/drift
+          test -z "$(git status --porcelain -- drift_schemas lib/data/db test/drift)"
 
       - name: Release build has no INTERNET permission
         if: hashFiles('app/pubspec.yaml') != ''
