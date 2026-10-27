@@ -10,9 +10,12 @@ import 'package:prepbelt/application/sort_share.dart';
 import 'package:prepbelt/core/providers.dart';
 import 'package:prepbelt/data/db/app_database.dart';
 import 'package:prepbelt/data/db/converters.dart';
+import 'package:prepbelt/platform/local_files.dart';
 import 'package:prepbelt/platform/share_receiver.dart';
 
 import 'app_helpers.dart';
+
+const _files = IoLocalFiles();
 
 void main() {
   late Fixture f;
@@ -103,18 +106,19 @@ void main() {
     test('exam files, PDFs, text and anything else', () async {
       final exam = await copy('MPSC.prepbelt.json',
           content: jsonEncode({'format': 'prepbelt-exam', 'format_version': 1}));
-      expect(await sortShare(IncomingShare(files: [exam])), isA<ExamFileShare>());
+      expect(await sortShare(IncomingShare(files: [exam]), _files), isA<ExamFileShare>());
       final other = await copy('notes.json', content: '{"format":"x"}');
-      expect(await sortShare(IncomingShare(files: [other])), isA<UnsupportedShare>());
+      expect(await sortShare(IncomingShare(files: [other]), _files), isA<UnsupportedShare>());
       final pdf = await copy('a.pdf');
-      expect(await sortShare(IncomingShare(files: [pdf])), isA<CaptureShare>());
+      expect(await sortShare(IncomingShare(files: [pdf]), _files), isA<CaptureShare>());
       final unnamed = await copy('FILE_123.bin');
-      expect(await sortShare(IncomingShare(files: [SharedCopy(unnamed.cachePath, null, 1)])),
+      expect(
+          await sortShare(IncomingShare(files: [SharedCopy(unnamed.cachePath, null, 1)]), _files),
           isA<CaptureShare>()); // the %PDF- header decides
       final png = await copy('photo.png', content: 'PNG');
-      expect(await sortShare(IncomingShare(files: [png])), isA<UnsupportedShare>());
-      expect(await sortShare(const IncomingShare(text: 'hello')), isA<CaptureShare>());
-      expect(await isExamFile(File('${tmp.path}/missing.json')), isFalse);
+      expect(await sortShare(IncomingShare(files: [png]), _files), isA<UnsupportedShare>());
+      expect(await sortShare(const IncomingShare(text: 'hello'), _files), isA<CaptureShare>());
+      expect(await isExamFile('${tmp.path}/missing.json', _files), isFalse);
     });
   });
 
@@ -145,7 +149,8 @@ void main() {
       expect(r.matched, 3);
       expect(r.unmatched, ['Missing.pdf']);
       final a = (await db.sourcesDao.sourceFor('a'))!;
-      expect([a.folderId, a.relativePath, a.linkStatus], [folder, 'books/Laxmikant.pdf', LinkStatus.ok]);
+      expect([a.folderId, a.relativePath, a.linkStatus],
+          [folder, 'books/Laxmikant.pdf', LinkStatus.ok]);
       expect((await db.sourcesDao.sourceFor('d'))!.fileSize, 77);
     });
 

@@ -189,13 +189,13 @@ void main() {
           ],
           'sources': [],
         }));
-      await expectLater(cb.read(examImporterProvider).previewFile(bad), throwsA(isA<ImportRejected>()));
+      await expectLater(cb.read(examImporterProvider).previewFile(bad.path), throwsA(isA<ImportRejected>()));
       final newer = File('${tmp.path}/newer.json')
         ..writeAsStringSync(jsonEncode({
           ...jsonDecode((await export('mpsc', PackageMode.structure)).encode()) as Map<String, Object?>,
           'format_version': 9,
         }));
-      await expectLater(cb.read(examImporterProvider).previewFile(newer), throwsA(isA<ImportRejected>()));
+      await expectLater(cb.read(examImporterProvider).previewFile(newer.path), throwsA(isA<ImportRejected>()));
       expect(await b.db.examsDao.all(), isEmpty);
     });
   });
@@ -207,7 +207,7 @@ void main() {
     setUp(() async {
       folders = FakeFolderAccess()..addTree('Drive', {});
       c = containerFor(a, folders: folders, extra: [
-        cacheDirProvider.overrideWithValue(() async => tmp),
+        cacheDirProvider.overrideWithValue(() async => tmp.path),
       ]);
     });
     tearDown(() => c.dispose());
@@ -257,7 +257,7 @@ void main() {
       // Re-importing the archive links back to the kept Polity.
       final file = folders.contents['doc:Drive/MPSC Prelims.prepbelt.json']!;
       final importer = c.read(examImporterProvider);
-      final preview = await importer.previewFile(file);
+      final preview = await importer.previewFile(file.path);
       expect(preview.subjects.firstWhere((s) => s.subject.id == 'sub1').action,
           SubjectAction.linkExisting);
       await importer.import(preview, examName: 'MPSC Prelims', examDate: day0.plusDays(100));

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
@@ -9,6 +7,7 @@ import '../data/db/app_database.dart';
 import '../data/db/converters.dart';
 import '../data/integrity.dart';
 import '../platform/folder_access.dart';
+import '../platform/local_files.dart';
 
 /// The backup folder the user picked to restore from, and its backups.
 class BackupChoice {
@@ -25,7 +24,8 @@ class RestoreBackup {
     required FolderAccess folders,
     required RestoreService service,
     required BackupService backups,
-    required Future<Directory> Function() cacheDir,
+    required LocalFiles files,
+    required Future<String> Function() cacheDir,
     required Future<void> Function() closeDatabase,
     required Future<AppDatabase> Function() reopenDatabase,
     required String Function() newId,
@@ -33,6 +33,7 @@ class RestoreBackup {
   })  : _folders = folders,
         _service = service,
         _backups = backups,
+        _files = files,
         _cacheDir = cacheDir,
         _close = closeDatabase,
         _reopen = reopenDatabase,
@@ -42,7 +43,8 @@ class RestoreBackup {
   final FolderAccess _folders;
   final RestoreService _service;
   final BackupService _backups;
-  final Future<Directory> Function() _cacheDir;
+  final LocalFiles _files;
+  final Future<String> Function() _cacheDir;
   final Future<void> Function() _close;
   final Future<AppDatabase> Function() _reopen;
   final String Function() _newId;
@@ -62,7 +64,7 @@ class RestoreBackup {
   /// Steps 2–6, then the backup folder is re-granted from the folder the user
   /// just picked, and the integrity check runs.
   Future<(RestoreResult, IntegrityReport?)> restore(BackupChoice choice, FolderEntry file) async {
-    final local = File(p.join((await _cacheDir()).path, 'restore-${file.name}'));
+    final local = p.join(await _cacheDir(), 'restore-${file.name}');
     try {
       await _folders.copyToLocal(file.uri, local);
     } on FolderException catch (e) {
@@ -90,7 +92,7 @@ class RestoreBackup {
       await db.settingsDao.setBackupFolderId(id);
       return (r, await runIntegrityCheck(db));
     } finally {
-      if (await local.exists()) await local.delete();
+      await _files.deleteIfExists(local);
     }
   }
 }

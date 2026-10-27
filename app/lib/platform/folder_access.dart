@@ -50,15 +50,16 @@ abstract interface class FolderAccess {
   /// The document URI of [relativePath] in [treeUri], or null.
   Future<String?> resolve(String treeUri, String relativePath);
 
-  Future<void> writeFile(String treeUri, String name, File file, {String mime});
+  /// Writes the local file at [path] into [treeUri] as [name].
+  Future<void> writeFile(String treeUri, String name, String path, {String mime});
 
   /// Files directly in [treeUri] (for backup rotation and restore).
   Future<List<FolderEntry>> list(String treeUri);
 
   Future<void> delete(String uri);
 
-  /// Copies [uri] into [dest] on local storage.
-  Future<File> copyToLocal(String uri, File dest);
+  /// Copies [uri] to the local path [dest].
+  Future<void> copyToLocal(String uri, String dest);
 }
 
 class SafFolderAccess implements FolderAccess {
@@ -125,9 +126,9 @@ class SafFolderAccess implements FolderAccess {
   }
 
   @override
-  Future<void> writeFile(String treeUri, String name, File file,
+  Future<void> writeFile(String treeUri, String name, String path,
           {String mime = 'application/octet-stream'}) =>
-      _guard(() => _saf.writeFileStream(treeUri, name, mime, file.openRead(), overwrite: true));
+      _guard(() => _saf.writeFileStream(treeUri, name, mime, File(path).openRead(), overwrite: true));
 
   @override
   Future<List<FolderEntry>> list(String treeUri) => _guard(() async => [
@@ -140,9 +141,8 @@ class SafFolderAccess implements FolderAccess {
   Future<void> delete(String uri) => _guard(() => _saf.delete(uri));
 
   @override
-  Future<File> copyToLocal(String uri, File dest) => _guard(() async {
-        await dest.parent.create(recursive: true);
-        await _saf.copyToLocalFile(uri, dest.path);
-        return dest;
+  Future<void> copyToLocal(String uri, String dest) => _guard(() async {
+        await File(dest).parent.create(recursive: true);
+        await _saf.copyToLocalFile(uri, dest);
       });
 }

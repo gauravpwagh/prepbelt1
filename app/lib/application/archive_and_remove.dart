@@ -1,6 +1,4 @@
 // Archive and remove (design §8a, CUJ 12, plan item 87).
-import 'dart:io';
-
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:prep_core/prep_core.dart';
@@ -10,6 +8,7 @@ import '../data/db/app_database.dart';
 import '../data/exchange/exam_exporter.dart';
 import '../data/study_writer.dart';
 import '../platform/folder_access.dart';
+import '../platform/local_files.dart';
 import 'build_today_plan.dart';
 
 final _log = Logger('archive');
@@ -47,8 +46,9 @@ class ArchivePlan {
 
 class ArchiveAndRemove {
   ArchiveAndRemove(this._db, this._exporter, this._folders, this._backups, this._writer,
-      this._plans, {required Future<Directory> Function() cacheDir})
-      : _cacheDir = cacheDir;
+      this._plans, {required LocalFiles files, required Future<String> Function() cacheDir})
+      : _files = files,
+        _cacheDir = cacheDir;
 
   final AppDatabase _db;
   final ExamExporter _exporter;
@@ -56,7 +56,8 @@ class ArchiveAndRemove {
   final BackupService _backups;
   final StudyWriter _writer;
   final BuildTodayPlan _plans;
-  final Future<Directory> Function() _cacheDir;
+  final LocalFiles _files;
+  final Future<String> Function() _cacheDir;
 
   /// Steps 1–3: check, export with progress (notes always on) into the backup
   /// folder, then read the file back and compare counts. Nothing is deleted.
@@ -86,24 +87,24 @@ class ArchiveAndRemove {
 
     final pkg = await _exporter.build(examId, PackageMode.progress, includeNotes: true);
     final cache = await _cacheDir();
-    final out = File(p.join(cache.path, examFileName(exam.name)));
-    await out.writeAsString(pkg.encode());
-    final name = p.basename(out.path);
+    final out = p.join(cache, examFileName(exam.name));
+    await _files.writeString(out, pkg.encode());
+    final name = p.basename(out);
     try {
       await _folders.writeFile(tree, name, out, mime: 'application/json');
     } on FolderException catch (e) {
       throw ArchiveBlocked('The backup folder is not writable: ${e.message}');
     } finally {
-      await out.delete();
+      await _files.deleteIfExists(out);
     }
 
     // Read the file back from the folder and check it.
     final entry = (await _folders.list(tree)).where((f) => f.name == name).firstOrNull;
     if (entry == null) throw const ArchiveBlocked('The archive file was not found after writing');
-    final back = File(p.join(cache.path, 'readback-$name'));
+    final back = p.join(cache, 'readback-$name');
     try {
       await _folders.copyToLocal(entry.uri, back);
-      final read = ExamPackage.decode(await back.readAsString());
+      final read = ExamPackage.decode(await _files.readString(back));
       final errors = validate(read);
       if (errors.isNotEmpty) throw ArchiveBlocked('The archive file is invalid: ${errors.first}');
       if (read.nodes.length != pkg.nodes.length || read.events.length != pkg.events.length) {
@@ -112,7 +113,7 @@ class ArchiveAndRemove {
     } on FormatException catch (e) {
       throw ArchiveBlocked('The archive file could not be read: ${e.message}');
     } finally {
-      if (await back.exists()) await back.delete();
+      await _files.deleteIfExists(back);
     }
 
     final folder = await _db.sourcesDao.folderById((await _db.settingsDao.backupFolderId())!);

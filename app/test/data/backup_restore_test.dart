@@ -32,8 +32,8 @@ void main() {
   BackupService service(AppDatabase db, FakeFolderAccess folders, {DateTime? at}) => BackupService(
         db,
         folders,
-        cacheDir: () async => cache,
-        privateDir: () async => private,
+        cacheDir: () async => cache.path,
+        privateDir: () async => private.path,
         appVersion: '0.1.0',
         now: () => at ?? t0,
         toLocal: (u) => u.add(ist),
@@ -143,10 +143,10 @@ void main() {
         f.writeAsStringSync('stale');
       }
 
-      final restore = RestoreService(dbFile: () async => target);
+      final restore = RestoreService(dbPath: () async => target.path);
       var safety = 0;
       final result = await restore.restore(
-        backup,
+        backup.path,
         writeSafety: () async => safety++,
         closeDatabase: () => live.close(),
         openDatabase: () async => live = AppDatabase(NativeDatabase(target)),
@@ -166,7 +166,7 @@ void main() {
     });
 
     test('refuses newer schemas, unknown files and damaged files', () async {
-      final restore = RestoreService(dbFile: () async => File(p.join(tmp.path, 'unused')));
+      final restore = RestoreService(dbPath: () async => p.join(tmp.path, 'unused'));
 
       final newer = File(p.join(tmp.path, 'newer.db'));
       sqlite3.open(newer.path)
@@ -174,19 +174,19 @@ void main() {
             ' app_version TEXT, created_at_utc INT)')
         ..execute("INSERT INTO backup_meta VALUES (1, 99, 'x', 0)")
         ..close();
-      expect(restore.check(newer), isA<RestoreNewerSchema>());
+      expect(restore.check(newer.path), isA<RestoreNewerSchema>());
 
       final unknown = File(p.join(tmp.path, 'unknown.db'));
       sqlite3.open(unknown.path)
         ..execute('CREATE TABLE t (x)')
         ..close();
-      expect(restore.check(unknown), isA<RestoreUnknownFormat>());
+      expect(restore.check(unknown.path), isA<RestoreUnknownFormat>());
 
       final garbage = File(p.join(tmp.path, 'garbage.db'))..writeAsStringSync('not sqlite ' * 100);
-      expect(restore.check(garbage), isA<RestoreCorrupt>());
+      expect(restore.check(garbage.path), isA<RestoreCorrupt>());
 
       var closed = false;
-      final r = await restore.restore(newer,
+      final r = await restore.restore(newer.path,
           writeSafety: () async {},
           closeDatabase: () async => closed = true,
           openDatabase: () async => throw StateError('must not open'));

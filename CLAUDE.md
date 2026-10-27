@@ -21,7 +21,7 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 
 ## Status
 
-All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 82 app tests pass, the coverage gate passes (application 89.8%), `check_imports` passes. CI on `main` is green.
+All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 83 app tests pass, the coverage gate passes (application 89.8%), `check_imports` passes. CI on `main` is green.
 
 | Milestone | State |
 | --- | --- |
@@ -58,6 +58,7 @@ See [docs/release/RELEASE.md](docs/release/RELEASE.md): the upload key (`app/and
 
 *   `prep_core` imports no Flutter, Drift, platform code or `dart:io`. IDs and time-zone offsets are passed in.
 *   Feature folders under `app/lib/features/` never import each other. `tool/check_imports.dart` enforces this.
+*   In `app/lib`, only `data/` and `platform/` import `dart:io`; the layers above pass file paths and use `LocalFiles` (`platform/local_files.dart`). `tool/check_imports.dart` enforces this too.
 *   **Single owners:**
     *   Only `SystemClock` reads the system time.
     *   Only `StudyWriter` writes events.

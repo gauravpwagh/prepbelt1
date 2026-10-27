@@ -8,5 +8,8 @@ import 'package:path_provider/path_provider.dart';
 Future<File> databaseFile() async =>
     File(p.join((await getApplicationDocumentsDirectory()).path, 'prepbelt.sqlite'));
 
+/// The path of [databaseFile].
+Future<String> databasePath() async => (await databaseFile()).path;
+
 /// The WAL side files that sit next to [db].
 List<File> sideFiles(File db) => [File('${db.path}-wal'), File('${db.path}-shm')];

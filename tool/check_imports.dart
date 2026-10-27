@@ -1,6 +1,8 @@
 // Enforces the layering rules from the design (§1):
 //   (a) packages/prep_core/lib must not import dart:io.
 //   (b) a file under app/lib/features/<x>/ must not import another feature <y>.
+//   (c) in app/lib, only data/ and platform/ may import dart:io (plan item 105),
+//       so a port to another platform only swaps those two layers.
 //
 // Usage: dart run tool/check_imports.dart   (from the repository root)
 import 'dart:io';
@@ -31,6 +33,17 @@ void main() {
         if (target != null && target != own) {
           violations.add('${file.path}: feature "$own" imports feature "$target" ($uri)');
         }
+      }
+    }
+  }
+
+  final app = Directory('app/lib');
+  if (app.existsSync()) {
+    for (final file in _dartFiles(app)) {
+      final rel = _norm(file.path).substring('app/lib/'.length);
+      if (rel.startsWith('data/') || rel.startsWith('platform/')) continue;
+      if (_imports(file).contains('dart:io')) {
+        violations.add('${file.path}: only data/ and platform/ may import dart:io');
       }
     }
   }

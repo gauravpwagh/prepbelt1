@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,7 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/diagnostics', builder: (context, state) => const DiagnosticsScreen()),
       GoRoute(
         path: '/exams/import',
-        builder: (context, s) => ImportScreen(file: s.extra! as File),
+        builder: (context, s) => ImportScreen(path: s.extra! as String),
       ),
     ],
   );

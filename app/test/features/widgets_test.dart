@@ -209,7 +209,7 @@ void main() {
       await file.writeAsString(pkg.encode());
     });
     await pumpApp(tester);
-    c.read(routerProvider).push('/exams/import', extra: file);
+    c.read(routerProvider).push('/exams/import', extra: file.path);
     // The preview reads the file with real IO: let it run between pumps.
     for (var i = 0; i < 20 && find.byKey(const Key('import-go')).evaluate().isEmpty; i++) {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));

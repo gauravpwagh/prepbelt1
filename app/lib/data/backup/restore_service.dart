@@ -41,16 +41,16 @@ final class RestoreIoError extends RestoreResult {
 }
 
 class RestoreService {
-  RestoreService({required Future<File> Function() dbFile}) : _dbFile = dbFile;
+  RestoreService({required Future<String> Function() dbPath}) : _dbPath = dbPath;
 
-  final Future<File> Function() _dbFile;
+  final Future<String> Function() _dbPath;
 
   /// Opens [candidate] read-only and checks it (step 3). Returns [RestoreOk]
   /// when it can be restored.
-  RestoreResult check(File candidate) {
+  RestoreResult check(String candidate) {
     Database? raw;
     try {
-      raw = sqlite3.open(candidate.path, mode: OpenMode.readOnly);
+      raw = sqlite3.open(candidate, mode: OpenMode.readOnly);
       final hasMeta = raw.select(
           "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'backup_meta'");
       if (hasMeta.isEmpty) return const RestoreUnknownFormat();
@@ -77,7 +77,7 @@ class RestoreService {
   /// invalid, so every folder is marked "pick again" and linked PDFs become
   /// `needs_relink`.
   Future<RestoreResult> restore(
-    File candidate, {
+    String candidate, {
     required Future<void> Function() writeSafety,
     required Future<void> Function() closeDatabase,
     required Future<AppDatabase> Function() openDatabase,
@@ -90,12 +90,12 @@ class RestoreService {
       return RestoreIoError('Could not write the safety backup: $e');
     }
     try {
-      final target = await _dbFile();
+      final target = File(await _dbPath());
       await closeDatabase();
       for (final f in sideFiles(target)) {
         if (await f.exists()) await f.delete();
       }
-      await candidate.copy(target.path);
+      await File(candidate).copy(target.path);
     } on FileSystemException catch (e) {
       return RestoreIoError(e.message);
     }

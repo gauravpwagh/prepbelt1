@@ -25,7 +25,7 @@ ProviderContainer containerFor(
 }) {
   final c = ProviderContainer(overrides: [
     logSinkProvider.overrideWithValue(
-        FileLogSink(Directory.systemTemp.createTempSync('prepbelt_logs'), now: f.clock.nowUtc)),
+        FileLogSink(Directory.systemTemp.createTempSync('prepbelt_logs').path, now: f.clock.nowUtc)),
     fileSharerProvider.overrideWithValue(sharer ?? FakeSharer()),
     folderAccessProvider.overrideWithValue(folders ?? FakeFolderAccess()),
     shareReceiverProvider.overrideWithValue(shares ?? FakeShareReceiver()),

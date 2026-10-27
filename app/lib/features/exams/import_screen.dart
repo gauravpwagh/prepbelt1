@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:prep_core/prep_core.dart';
 
 import '../../core/format.dart';
@@ -10,9 +9,10 @@ import '../../core/providers.dart';
 import '../../core/widgets/folder_chooser.dart';
 import '../../data/exchange/exam_importer.dart';
 import '../../platform/folder_access.dart';
+import '../../platform/local_files.dart';
 
 final _previewProvider = FutureProvider.autoDispose
-    .family<ImportPreview, String>((ref, path) => ref.watch(importExamProvider).preview(File(path)));
+    .family<ImportPreview, String>((ref, path) => ref.watch(importExamProvider).preview(path));
 
 /// Exams → Import: picks a `.prepbelt.json` from a granted folder and opens
 /// the Import screen.
@@ -42,8 +42,8 @@ Future<void> importFromFolder(BuildContext context, WidgetRef ref) async {
     ),
   );
   if (pick == null || !context.mounted) return;
-  final local = await ref.read(folderAccessProvider).copyToLocal(
-      pick.uri, File('${(await ref.read(cacheDirProvider)()).path}/import-${pick.name}'));
+  final local = p.join(await ref.read(cacheDirProvider)(), 'import-${pick.name}');
+  await ref.read(folderAccessProvider).copyToLocal(pick.uri, local);
   if (context.mounted) await context.push('/exams/import', extra: local);
 }
 
@@ -51,8 +51,10 @@ Future<void> importFromFolder(BuildContext context, WidgetRef ref) async {
 /// notices, one clash choice per clashing subject, Import. The file is a
 /// cache copy and is deleted when the screen closes.
 class ImportScreen extends ConsumerStatefulWidget {
-  const ImportScreen({super.key, required this.file});
-  final File file;
+  const ImportScreen({super.key, required this.path});
+
+  /// The local cache copy of the exam file.
+  final String path;
 
   @override
   ConsumerState<ImportScreen> createState() => _ImportScreenState();
@@ -64,10 +66,19 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   final _choices = <String, ClashChoice>{};
   var _busy = false;
 
+  /// Read once: `ref` is unusable in [dispose].
+  late final LocalFiles _files = ref.read(localFilesProvider);
+
+  @override
+  void initState() {
+    super.initState();
+    _files;
+  }
+
   @override
   void dispose() {
     _name?.dispose();
-    widget.file.delete().ignore();
+    _files.deleteIfExists(widget.path).ignore();
     super.dispose();
   }
 
@@ -95,7 +106,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final preview = ref.watch(_previewProvider(widget.file.path));
+    final preview = ref.watch(_previewProvider(widget.path));
     return Scaffold(
       appBar: AppBar(title: const Text('Import exam')),
       body: switch (preview) {

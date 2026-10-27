@@ -98,13 +98,13 @@ class ExamExporter {
     return applyPrivacy(pkg, includeNotes: includeNotes);
   }
 
-  /// Writes the package as pretty JSON into [dir].
-  Future<File> export(String examId, PackageMode mode,
-      {required bool includeNotes, required Directory dir}) async {
+  /// Writes the package as pretty JSON into [dir] and returns its path.
+  Future<String> export(String examId, PackageMode mode,
+      {required bool includeNotes, required String dir}) async {
     final pkg = await build(examId, mode, includeNotes: includeNotes);
-    final file = File(p.join(dir.path, examFileName(pkg.exam.name)));
+    final file = File(p.join(dir, examFileName(pkg.exam.name)));
     await file.writeAsString(pkg.encode());
-    return file;
+    return file.path;
   }
 }
 

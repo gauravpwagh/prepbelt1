@@ -1,7 +1,6 @@
 // Exam files (design §8a, plan items 84–86).
-import 'dart:io';
-
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:prep_core/prep_core.dart';
 
 import '../data/backup/backup_service.dart';
@@ -9,6 +8,7 @@ import '../data/exchange/exam_exporter.dart';
 import '../data/exchange/exam_importer.dart';
 import '../platform/file_sharer.dart';
 import '../platform/folder_access.dart';
+import '../platform/local_files.dart';
 import 'build_today_plan.dart';
 
 final _log = Logger('exchange');
@@ -19,14 +19,16 @@ const historyWarning = 'Includes your notes and history';
 /// Export (plan item 84): share the file, or save it into the backup folder.
 class ExportExam {
   ExportExam(this._exporter, this._folders, this._backups, this._sharer,
-      {required Future<Directory> Function() cacheDir})
-      : _cacheDir = cacheDir;
+      {required LocalFiles files, required Future<String> Function() cacheDir})
+      : _files = files,
+        _cacheDir = cacheDir;
 
   final ExamExporter _exporter;
   final FolderAccess _folders;
   final BackupService _backups;
   final FileSharer _sharer;
-  final Future<Directory> Function() _cacheDir;
+  final LocalFiles _files;
+  final Future<String> Function() _cacheDir;
 
   /// "Polity is also used by UPSC Prelims." for every shared subject.
   Future<List<String>> alsoUsedNotices(String examId) async {
@@ -37,7 +39,7 @@ class ExportExam {
     ];
   }
 
-  Future<File> _file(String examId, PackageMode mode, bool includeNotes) async =>
+  Future<String> _file(String examId, PackageMode mode, bool includeNotes) async =>
       _exporter.export(examId, mode, includeNotes: includeNotes, dir: await _cacheDir());
 
   Future<void> share(String examId, PackageMode mode, {required bool includeNotes}) async {
@@ -53,11 +55,12 @@ class ExportExam {
       throw const FolderException(FolderError.noPermission, 'Choose a backup folder first');
     }
     final f = await _file(examId, mode, includeNotes);
+    final name = p.basename(f);
     try {
-      await _folders.writeFile(tree, f.uri.pathSegments.last, f, mime: 'application/json');
-      return f.uri.pathSegments.last;
+      await _folders.writeFile(tree, name, f, mime: 'application/json');
+      return name;
     } finally {
-      await f.delete();
+      await _files.deleteIfExists(f);
     }
   }
 }
@@ -69,7 +72,8 @@ class ImportExam {
   final ExamImporter _importer;
   final BuildTodayPlan _plans;
 
-  Future<ImportPreview> preview(File file) => _importer.previewFile(file);
+  /// [path] is a local copy of the exam file.
+  Future<ImportPreview> preview(String path) => _importer.previewFile(path);
 
   Future<String> call(ImportPreview p,
       {required String examName,

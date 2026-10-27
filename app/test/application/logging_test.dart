@@ -15,7 +15,7 @@ void main() {
   tearDown(() => dir.delete(recursive: true));
 
   test('the log rotates at the size limit and keeps two files', () {
-    final sink = FileLogSink(dir, now: () => t0, maxBytes: 100);
+    final sink = FileLogSink(dir.path, now: () => t0, maxBytes: 100);
     for (var i = 0; i < 30; i++) {
       sink.write('line $i ${'x' * 20}');
     }
@@ -32,14 +32,14 @@ void main() {
   });
 
   test('Share logs zips logs, crash.log and meta.txt — never the database', () async {
-    final sink = FileLogSink(dir, now: () => t0)
+    final sink = FileLogSink(dir.path, now: () => t0)
       ..write('hello')
       ..writeCrash(StateError('boom'), StackTrace.empty);
     expect(sink.crash.readAsStringSync(), startsWith('${t0.toIso8601String()} Bad state: boom'));
     final notes = FakeNotifications()..granted = false;
     final sharer = FakeSharer();
     final share = ShareLogs(sink, FakeDeviceStatus()..ignored = true, notes, sharer,
-        appVersion: '0.1.0', tzId: 'Asia/Kolkata', cacheDir: () async => dir, now: () => t0);
+        appVersion: '0.1.0', tzId: 'Asia/Kolkata', cacheDir: () async => dir.path, now: () => t0);
 
     final meta = await share.meta();
     expect(meta, contains('PrepBelt 0.1.0 (schema 1)'));

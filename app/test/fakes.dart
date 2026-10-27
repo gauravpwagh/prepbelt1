@@ -58,7 +58,7 @@ class FakeDeviceStatus implements DeviceStatus {
 class FakeSharer implements FileSharer {
   final shared = <String>[];
   @override
-  Future<void> shareFile(File file, {String? subject}) async => shared.add(file.path);
+  Future<void> shareFile(String path, {String? subject}) async => shared.add(path);
 }
 
 class FakeOpener implements SourceOpener {
@@ -115,7 +115,8 @@ class FakeFolderAccess implements FolderAccess {
           : null;
 
   @override
-  Future<void> writeFile(String treeUri, String name, File file, {String mime = ''}) async {
+  Future<void> writeFile(String treeUri, String name, String path, {String mime = ''}) async {
+    final file = File(path);
     final t = trees[treeUri];
     if (t == null) throw const FolderException(FolderError.noPermission, 'No access');
     t[name] = await file.length();
@@ -146,11 +147,11 @@ class FakeFolderAccess implements FolderAccess {
   final contents = <String, File>{};
 
   @override
-  Future<File> copyToLocal(String uri, File dest) async {
+  Future<void> copyToLocal(String uri, String dest) async {
     final src = contents[uri];
     if (src == null) throw const FolderException(FolderError.notFound, 'Missing');
-    await dest.parent.create(recursive: true);
-    return src.copy(dest.path);
+    await File(dest).parent.create(recursive: true);
+    await src.copy(dest);
   }
 }
 

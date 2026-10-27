@@ -1,8 +1,5 @@
 // Root providers: the single place where the app is wired (plan item 50).
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:prep_core/prep_core.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
@@ -41,6 +38,7 @@ import '../platform/clock.dart';
 import '../platform/device_status.dart';
 import '../platform/file_sharer.dart';
 import '../platform/folder_access.dart';
+import '../platform/local_files.dart';
 import '../platform/logging.dart';
 import '../platform/notification_port.dart';
 import '../platform/share_receiver.dart';
@@ -217,10 +215,10 @@ final reconcileNotificationsProvider = Provider<ReconcileNotifications>((ref) =>
 // ---- backups, restore and catch-up ----
 
 /// The cache and app-private directories; tests override them.
-final cacheDirProvider = Provider<Future<Directory> Function()>((ref) => getTemporaryDirectory);
-final privateDirProvider =
-    Provider<Future<Directory> Function()>((ref) => getApplicationSupportDirectory);
-final databaseFileProvider = Provider<Future<File> Function()>((ref) => databaseFile);
+final cacheDirProvider = Provider<Future<String> Function()>((ref) => appCacheDir);
+final privateDirProvider = Provider<Future<String> Function()>((ref) => appPrivateDir);
+final databasePathProvider = Provider<Future<String> Function()>((ref) => databasePath);
+final localFilesProvider = Provider<LocalFiles>((ref) => const IoLocalFiles());
 
 final backupServiceProvider = Provider<BackupService>((ref) {
   final offset = ref.watch(offsetFnProvider);
@@ -250,8 +248,9 @@ final catchUpProvider = Provider<CatchUp>((ref) => CatchUp(
 /// mid-restore.
 RestoreBackup restoreBackupFor(ProviderContainer c) => RestoreBackup(
       folders: c.read(folderAccessProvider),
-      service: RestoreService(dbFile: c.read(databaseFileProvider)),
+      service: RestoreService(dbPath: c.read(databasePathProvider)),
       backups: c.read(backupServiceProvider),
+      files: c.read(localFilesProvider),
       cacheDir: c.read(cacheDirProvider),
       closeDatabase: () => c.read(appDatabaseProvider).close(),
       reopenDatabase: () async {
@@ -288,6 +287,7 @@ final exportExamProvider = Provider<ExportExam>((ref) => ExportExam(
     ref.watch(folderAccessProvider),
     ref.watch(backupServiceProvider),
     ref.watch(fileSharerProvider),
+    files: ref.watch(localFilesProvider),
     cacheDir: ref.watch(cacheDirProvider)));
 
 final importExamProvider = Provider<ImportExam>((ref) =>
@@ -303,6 +303,7 @@ final archiveAndRemoveProvider = Provider<ArchiveAndRemove>((ref) => ArchiveAndR
     ref.watch(backupServiceProvider),
     ref.watch(studyWriterProvider),
     ref.watch(buildTodayPlanProvider),
+    files: ref.watch(localFilesProvider),
     cacheDir: ref.watch(cacheDirProvider)));
 
 // ---- logging and diagnostics ----

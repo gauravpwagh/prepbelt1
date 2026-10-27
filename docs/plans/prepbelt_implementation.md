@@ -506,9 +506,9 @@ Each concern below has exactly one owner:
         *   `persisted() → List<String>`
         *   `walk(treeUri) → Stream<FolderEntry(relativePath, name, size, uri)>`
         *   `resolve(treeUri, relativePath) → String?` (walks the folder and caches results for the session)
-        *   `writeFile(treeUri, name, File)`
+        *   `writeFile(treeUri, name, localPath)`
         *   `delete(uri)`
-        *   `copyToLocal(uri) → File`
+        *   `copyToLocal(uri, localPath)`
     *   **Errors:** `SafPermissionException` becomes `FolderError.noPermission`, and `SafNotFoundException` becomes `FolderError.notFound`.
 68. **`source_opener.dart`** (Create). `open(Source) → OpenResult (ok | notFound | noApp)`.
     *   **File sources:**
@@ -544,6 +544,9 @@ Each concern below has exactly one owner:
     *   **Log files:** a rotating `FileLogSink`, 2 files of 1 MB each, in `getApplicationSupportDirectory()/logs`.
     *   **Crashes:** written to `crash.log`.
     *   **`shareLogs()`:** zips the logs, `crash.log` and `meta.txt` (versions, device, time zone, permission states) with `archive`, then shares the zip through `share_plus`.
+
+105. **`local_files.dart`** (Create, added after M7). `LocalFiles` (`length`, `readString`, `writeString`, `readHead`, `deleteIfExists`) with `IoLocalFiles`, plus `appCacheDir()` and `appPrivateDir()`.
+    *   **Rule:** in `app/lib`, only `data/` and `platform/` import `dart:io`. Everything above them names local files by path (`String`) and goes through `LocalFiles`, `FolderAccess` or `FileSharer`. `tool/check_imports.dart` enforces this, so a port to iOS or the web swaps only those two layers.
 
 ### `app/lib/application` (use cases, one class each)
 
@@ -672,7 +675,7 @@ Each feature has its own screens or sheets, providers and widgets, with the cont
 
 ## Verification Plan
 
-*   **Layering:** `dart run tool/check_imports.dart` exits 0.
+*   **Layering:** `dart run tool/check_imports.dart` exits 0 (no cross-feature imports; in the app, `dart:io` only in `data/` and `platform/`).
 *   **Codegen and analysis:** `build_runner` succeeds, and `flutter analyze` reports zero issues.
 *   **Unit tests:**
     *   `prep_core`: `coverage:test_with_coverage`.

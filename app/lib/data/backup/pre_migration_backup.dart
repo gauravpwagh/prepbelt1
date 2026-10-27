@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../../platform/folder_access.dart';
 import '../db/app_database.dart';
 import 'backup_service.dart';
 
@@ -21,6 +22,36 @@ class PreMigrationCopy {
 }
 
 abstract final class PreMigrationBackup {
+  /// Before Drift opens [dbPath]: when it needs a migration, copies it and
+  /// saves the copy into the backup folder recorded in it, or else into the
+  /// app-private `backups` folder. Never throws; a failure is logged.
+  static Future<void> saveIfNeeded(
+    String dbPath, {
+    required String cacheDir,
+    required String privateDir,
+    required FolderAccess folders,
+    required DateTime localNow,
+  }) async {
+    try {
+      final copy = runIfNeeded(File(dbPath), cacheDir: Directory(cacheDir), localNow: localNow);
+      if (copy == null) return;
+      final name = p.basename(copy.file.path);
+      try {
+        if (copy.backupTreeUri != null) {
+          await folders.writeFile(copy.backupTreeUri!, name, copy.file.path);
+        } else {
+          final dir = Directory(p.join(privateDir, 'backups'));
+          await dir.create(recursive: true);
+          await copy.file.copy(p.join(dir.path, name));
+        }
+      } finally {
+        await copy.file.delete();
+      }
+    } catch (e, st) {
+      _log.severe('Pre-migration backup failed', e, st);
+    }
+  }
+
   /// Normally a single `user_version` read. When the file's schema is older
   /// than [currentSchema], copies it with VACUUM INTO into [cacheDir].
   static PreMigrationCopy? runIfNeeded(

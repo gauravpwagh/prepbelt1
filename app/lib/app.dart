@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -132,12 +131,12 @@ class _PrepBeltAppState extends ConsumerState<PrepBeltApp>
   }
 
   Future<void> _route(IncomingShare share) async {
-    final kind = await sortShare(share);
+    final kind = await sortShare(share, ref.read(localFilesProvider));
     final router = ref.read(routerProvider);
     switch (kind) {
       case ExamFileShare(:final copy):
         router.go('/exams');
-        router.push('/exams/import', extra: File(copy.cachePath));
+        router.push('/exams/import', extra: copy.cachePath);
       case CaptureShare():
         router.go('/today');
         await Future<void>.delayed(Duration.zero);

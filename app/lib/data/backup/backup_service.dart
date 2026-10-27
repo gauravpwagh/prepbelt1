@@ -38,8 +38,8 @@ class BackupService {
   BackupService(
     this._db,
     this._folders, {
-    required Future<Directory> Function() cacheDir,
-    required Future<Directory> Function() privateDir,
+    required Future<String> Function() cacheDir,
+    required Future<String> Function() privateDir,
     required this.appVersion,
     required DateTime Function() now,
     required DateTime Function(DateTime utc) toLocal,
@@ -50,8 +50,8 @@ class BackupService {
 
   final AppDatabase _db;
   final FolderAccess _folders;
-  final Future<Directory> Function() _cacheDir;
-  final Future<Directory> Function() _privateDir;
+  final Future<String> Function() _cacheDir;
+  final Future<String> Function() _privateDir;
   final String appVersion;
   final DateTime Function() _now;
   final DateTime Function(DateTime utc) _toLocal;
@@ -74,7 +74,7 @@ class BackupService {
   }
 
   Future<Directory> _privateBackups() async {
-    final d = Directory(p.join((await _privateDir()).path, 'backups'));
+    final d = Directory(p.join(await _privateDir(), 'backups'));
     await d.create(recursive: true);
     return d;
   }
@@ -96,14 +96,14 @@ class BackupService {
   Future<BackupResult> writeTo(String prefix) async {
     await _updateMeta();
     final name = '$prefix-${backupStamp(_toLocal(_now()))}-s${AppDatabase.currentSchema}.db';
-    final tmp = File(p.join((await _cacheDir()).path, name));
+    final tmp = File(p.join(await _cacheDir(), name));
     if (await tmp.exists()) await tmp.delete();
     await _db.customStatement("VACUUM INTO '${tmp.path.replaceAll("'", "''")}'");
     try {
       final tree = await backupTree();
       if (tree != null) {
         try {
-          await _folders.writeFile(tree, name, tmp);
+          await _folders.writeFile(tree, name, tmp.path);
           return BackupResult(name, BackupDestination.folder);
         } on FolderException catch (e) {
           _log.warning('Backup folder not writable; using app storage', e);

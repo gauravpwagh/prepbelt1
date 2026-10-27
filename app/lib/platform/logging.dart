@@ -10,8 +10,9 @@ import 'package:path/path.dart' as p;
 
 /// A rotating log: `log.txt` plus one older `log.1.txt`, about 1 MB each.
 class FileLogSink {
-  FileLogSink(this.dir, {required DateTime Function() now, this.maxBytes = 1024 * 1024})
-      : _now = now;
+  FileLogSink(String dir, {required DateTime Function() now, this.maxBytes = 1024 * 1024})
+      : dir = Directory(dir),
+        _now = now;
 
   final Directory dir;
   final int maxBytes;
@@ -82,14 +83,15 @@ void installErrorHooks(FileLogSink sink) {
   };
 }
 
-/// Zips the logs, `crash.log` and [meta] (`meta.txt`) into [outDir].
-File zipLogs(FileLogSink sink, String meta, Directory outDir) {
+/// Zips the logs, `crash.log` and [meta] (`meta.txt`) into [outDir] and
+/// returns the zip's path.
+String zipLogs(FileLogSink sink, String meta, String outDir) {
   final archive = Archive();
   for (final f in sink.files) {
     archive.add(ArchiveFile.bytes(p.basename(f.path), f.readAsBytesSync()));
   }
   archive.add(ArchiveFile.bytes('meta.txt', utf8.encode(meta)));
-  final out = File(p.join(outDir.path, 'prepbelt-logs.zip'));
+  final out = File(p.join(outDir, 'prepbelt-logs.zip'));
   out.writeAsBytesSync(ZipEncoder().encodeBytes(archive));
-  return out;
+  return out.path;
 }

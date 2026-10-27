@@ -67,7 +67,8 @@ class ExamImporter {
   final String Function() _newId;
   final DateTime Function() _now;
 
-  Future<ImportPreview> previewFile(File file) async {
+  Future<ImportPreview> previewFile(String path) async {
+    final file = File(path);
     if (await file.length() > examFileMaxBytes) {
       throw const ImportRejected(['The file is larger than 20 MB']);
     }

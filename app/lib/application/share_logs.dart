@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import '../data/db/app_database.dart';
 import '../platform/device_status.dart';
 import '../platform/file_sharer.dart';
@@ -12,7 +10,7 @@ class ShareLogs {
   ShareLogs(this._sink, this._device, this._notifications, this._sharer,
       {required this.appVersion,
       required this.tzId,
-      required Future<Directory> Function() cacheDir,
+      required Future<String> Function() cacheDir,
       required DateTime Function() now})
       : _cacheDir = cacheDir,
         _now = now;
@@ -23,7 +21,7 @@ class ShareLogs {
   final FileSharer _sharer;
   final String appVersion;
   final String tzId;
-  final Future<Directory> Function() _cacheDir;
+  final Future<String> Function() _cacheDir;
   final DateTime Function() _now;
 
   Future<String> meta() async {
@@ -38,7 +36,8 @@ class ShareLogs {
     ].join('\n');
   }
 
-  Future<File> zip() async => zipLogs(_sink, await meta(), await _cacheDir());
+  /// The zip's path in the cache directory.
+  Future<String> zip() async => zipLogs(_sink, await meta(), await _cacheDir());
 
   Future<void> call() async => _sharer.shareFile(await zip(), subject: 'PrepBelt logs');
 }

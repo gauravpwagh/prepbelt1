@@ -22,16 +22,16 @@ void main() {
     var db = AppDatabase(NativeDatabase(file));
     await db.subjectsDao.ensureInbox(newId: () => 'inbox', now: t0);
     final backups = BackupService(db, FakeFolderAccess(),
-        cacheDir: () async => dir,
-        privateDir: () async => dir,
+        cacheDir: () async => dir.path,
+        privateDir: () async => dir.path,
         appVersion: 'it',
         now: () => t0,
         toLocal: (u) => u);
     final r = await backups.runRoutine();
     await db.settingsDao.setDailyMinutes(200);
 
-    final result = await RestoreService(dbFile: () async => file).restore(
-      File(p.join(dir.path, 'backups', r.name)),
+    final result = await RestoreService(dbPath: () async => file.path).restore(
+      p.join(dir.path, 'backups', r.name),
       writeSafety: () async {},
       closeDatabase: () => db.close(),
       openDatabase: () async => db = AppDatabase(NativeDatabase(file)),

@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:prep_core/prep_core.dart';
 
+import '../platform/local_files.dart';
 import '../platform/share_receiver.dart';
 
 /// What to do with an incoming share (design §8a "Receiving exam files").
@@ -28,37 +28,37 @@ final class UnsupportedShare extends ShareKind {
   final IncomingShare share;
 }
 
-Future<ShareKind> sortShare(IncomingShare share) async {
+Future<ShareKind> sortShare(IncomingShare share, LocalFiles files) async {
   if (share.files.length == 1 && (share.text == null || share.text!.trim().isEmpty)) {
     final f = share.files.single;
-    if (await isExamFile(File(f.cachePath))) return ExamFileShare(f);
+    if (await isExamFile(f.cachePath, files)) return ExamFileShare(f);
   }
-  final allPdf = share.files.every((f) => _looksPdf(f));
-  return allPdf ? CaptureShare(share) : UnsupportedShare(share);
+  for (final f in share.files) {
+    if (!await _looksPdf(f, files)) return UnsupportedShare(share);
+  }
+  return CaptureShare(share);
 }
 
-bool _looksPdf(SharedCopy f) {
+Future<bool> _looksPdf(SharedCopy f, LocalFiles files) async {
   final name = (f.name ?? f.cachePath).toLowerCase();
   if (name.endsWith('.pdf')) return true;
   try {
-    final head = File(f.cachePath).openSync()..setPositionSync(0);
-    final bytes = head.readSync(5);
-    head.closeSync();
+    final bytes = await files.readHead(f.cachePath, 5);
     return utf8.decode(bytes, allowMalformed: true) == '%PDF-';
-  } on FileSystemException {
+  } on LocalFileException {
     return false;
   }
 }
 
 /// A JSON file of at most 20 MB whose `format` is `prepbelt-exam`.
-Future<bool> isExamFile(File file) async {
+Future<bool> isExamFile(String path, LocalFiles files) async {
   try {
-    if (await file.length() > examFileMaxBytes) return false;
-    final raw = jsonDecode(await file.readAsString());
+    if (await files.length(path) > examFileMaxBytes) return false;
+    final raw = jsonDecode(await files.readString(path));
     return raw is Map && raw['format'] == examFormatId;
   } on FormatException {
     return false;
-  } on FileSystemException {
+  } on LocalFileException {
     return false;
   }
 }
