@@ -4,6 +4,7 @@
 *   **Status:** Approved for implementation. Goldfish review round 1, the re-check and a focused review of §8a (exam export and import) are all resolved. D12 was added during M1.
 *   **Amendment (2026-10-27):** iOS and tablet layouts brought into scope by the author (D13, D14, §13, M8, M9). The amendment's open questions are listed below; it has not had a Goldfish review yet.
 *   **Amendment (2026-10-27, second):** organising items brought into scope by the author (D15, §10a, CUJ 13, M10): move, delete that can keep children, subject rename and delete, and creating a subject or topic where it is picked. Not yet reviewed.
+*   **Amendment (2026-10-27, third):** Today in three collapsible sections, Due now, Up next and Coming up, with the daily minutes shown as a line instead of a filter (D16, §4, CUJ 14, M11). The planner's rules are unchanged. Not yet reviewed.
 *   **Date:** 2026-10-26
 *   **Predecessor:** [concepts_brief.md](../../claude/concepts_brief.md)
 *   **Implementation plan:** [docs/plans/prepbelt_implementation.md](../plans/prepbelt_implementation.md)
@@ -22,7 +23,7 @@ When an item is first studied, it enters a review schedule. After each review th
     *   Red when first read;
     *   up through Orange, Yellow and Light green to Green with good reviews;
     *   down one belt when the student forgets.
-*   **Daily list.** Each day the app shows one list that fits the student's study minutes. Due reviews come first, and part of the day is always kept for items not yet read.
+*   **Daily list.** Each day the app shows what is due, what is lined up to read next and what comes up later (D16). A line marks the part that fits the student's study minutes. Due reviews come first, and part of the day is always kept for items not yet read.
 *   **Missed days.** After missed days, the extra reviews are shown as a single count, and the app offers to spread them over the next few days.
 
 In short, the app does four things:
@@ -50,7 +51,9 @@ Nothing leaves the phone except files the user creates on purpose: backups saved
 | **Deadline** | For an item, the earliest exam that is linked to its subject, not archived, and dated after today. |
 | **Effective due** | The ladder due date with the exam cap applied when it is read (§3). This is the date the user sees. It is never stored. |
 | **Review share / reserve** | The two parts of the daily budget: minutes for reviews, and minutes kept for first readings (§4). |
-| **Waiting** | Due reviews that did not fit today's review share. Today shows them as one count line. |
+| **Waiting** | Due reviews that did not fit today's review share. Today lists them in Due now, below the line. |
+| **Due now / Up next / Coming up** | The three sections of Today (D16): reviews due today or overdue; unread items in Library order; reviews due after today, by day. |
+| **The line** | The dashed line in Due now and Up next. Rows above it are today's frozen plan and fit the daily minutes; rows below it don't, but can still be started. |
 | **Inbox** | A built-in subject that holds quick captures, items shared from other apps, and the children of deleted items, until they are filed. It is linked to no exam and is left out of the plan. It cannot be renamed or deleted. |
 | **Study day** | The local date, where the day starts at the day-start hour (default 4 AM). |
 
@@ -69,7 +72,7 @@ A student preparing for a competitive exam (for example UPSC, MPSC or a state PS
 
 ## Goals
 
-1.  **Daily plan in minutes.** The Today screen shows one list whose estimated total never exceeds the daily study minutes.
+1.  **Daily plan in minutes.** The rows above the line on Today (D16) have an estimated total that never exceeds the daily study minutes.
     *   While unread items exist, the reserve (§4) goes to first readings and always fits at least the next unread item.
     *   The remaining minutes go to reviews.
 2.  **Exam-aware scheduling.** When an item's deadline is at least two days after its last review, its effective due date is no later than the day before that exam.
@@ -81,7 +84,7 @@ A student preparing for a competitive exam (for example UPSC, MPSC or a state PS
     These rules live in one `BeltPolicy`, with tests for every belt × grade pair and every exam-cap case (§12).
 4.  **Explainable decisions.**
     *   For any item, "Why is this due?" shows the rule that produced the date and the last 5 events.
-    *   Today shows a one-line summary of how the minutes were split.
+    *   Today shows how many of the daily minutes are planned, and each section header shows its count, its minutes and how many fit today.
 5.  **Limited backlog** (D12). The 90-day simulation (§12) runs with 15% missed days across 20 seeds. In every run:
     *   outside the 7 days before an exam, each day's `waiting_minutes` is at most 3 × that day's review share;
     *   every item first studied at least 3 days before its deadline either appears as a planned review row on at least one non-missed study day before that exam, or is counted in `wontFit`.
@@ -196,6 +199,13 @@ These are out of scope for version 1. Where later support needs data, that data 
     *   **Subjects.** Subjects can be renamed and deleted from the Library. Deleting one asks whether its items move to the Inbox or are deleted too.
     *   **Create in place.** The Add form offers "+ New subject…" and "+ New topic…" in its menus, and the Quick add and Share sheets offer a "New" chip. A new subject can be linked to exams there, or to none.
     *   **Exams are unchanged.** An exam is still removed only by Archive → Export and remove (§8a).
+*   **D16: Today shows everything in three collapsible sections, and the daily minutes are a line, not a filter** (author decision, 2026-10-27). Rules in §4, "What Today shows".
+    *   **Why.** An unread item that did not fit the day's minutes was missing from Today with no hint, and the student could not tell why.
+    *   **Due now:** every review due today or overdue, in planner order. **Up next:** unread items in Library order. **Coming up:** reviews due after today, grouped by day.
+    *   **The line.** The frozen plan (§4) decides what sits above the line. Everything else that is due or unread is listed below it and can still be started.
+    *   **Done items** leave Due now and Up next and appear under Coming up on their next date, with a ✓ for the rest of the day.
+    *   **Coming up is view-only.** There is no early review; belt rules and dates are unchanged.
+    *   **Collapsed.** Each section is one header line. Due now is open by default, or Up next when nothing is due, or Coming up when both are empty. What the student opens or closes is kept for the rest of the study day.
 
 ## Open Questions
 
@@ -218,7 +228,7 @@ These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
     2.  Enters an exam ("MPSC Prelims", 2027-03-14), one subject ("Polity"), a daily time (90 min) and one item ("Laxmikant Ch 1–5").
     3.  Chooses "Studied today".
 *   **Then**:
-    *   Today opens. "Laxmikant Ch 1–5" shows as a done first-reading row at Red, next review tomorrow.
+    *   Today opens. "Laxmikant Ch 1–5" shows under Coming up → Tomorrow at Red, with a ✓ for done today (D16).
     *   The remaining 60 minutes are offered to unread items. The first time, this shows as an empty state with an "Add more items" action.
     *   The app asks once for notification permission. It then explains why turning off battery optimisation helps, and opens the system settings screen, where the user finds PrepBelt.
     *   After the first item is saved, the app asks for a backup folder. The user can skip this; a banner then reminds them.
@@ -314,7 +324,7 @@ These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
 *   **When**: the user opens the app.
 *   **Then**:
     *   Today shows the reviews that fit today's review share, in priority order (§4), plus the reserved first reading.
-    *   The rest appears as one line: "12 reviews waiting".
+    *   The rest are listed in Due now below the line, and the header says "· 6 fit today".
     *   A prompt offers: "Spread 18 overdue reviews over the next 6 days?"
         *   The day count already includes the reviews that fall due on those days.
         *   If some reviews cannot fit before an exam, the prompt adds: "3 can't fit before MPSC Prelims at 90 min/day — about 15 more min/day would fit them." (D12)
@@ -403,6 +413,16 @@ These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
     *   The chat leaves the Inbox, joins today's planning and is capped by the exams of "Economy".
     *   The new subject is created and selected without leaving the Add form, and it is linked to MPSC Prelims.
     *   The four subtasks become tasks in the Inbox, with the task's source and their belts. The snackbar offers Undo.
+
+### CUJ 14: See everything on Today
+
+*   **Given**: daily minutes are 45. Two reviews (11 min) are due, one of them 2 days overdue. Two 30-minute PDFs are unread. Three reviews fall due tomorrow.
+*   **When**: the user opens Today, opens Up next, then finishes the first PDF.
+*   **Then**:
+    *   The header reads "0 done · 41 of 45 min". Due now is open with both reviews; one says "2 days overdue".
+    *   Up next reads "2 new · 60 min · 1 fits today". Opened, it shows the first PDF, the line, then the second PDF with a Start button.
+    *   After Finish, the first PDF leaves Up next and appears under Coming up → Tomorrow with a ✓, now Red; Tomorrow says "4 reviews · … (1 done today)".
+    *   Closing Up next and reopening the app the same day keeps it closed. The next study day it is back to the default.
 
 ### CUJ 12: Archive a finished exam to a file
 
@@ -524,6 +544,7 @@ The app has four layers, and dependencies point only downward. The scheduling an
 | `onboarding_done` | false |
 | `last_used_subject_id` | null |
 | `last_used_topic_id` | null |
+| `today_open_sections` | null: the default (D16). Otherwise `YYYY-MM-DD:due,next,coming`, the study date and the open sections; ignored on another date. |
 
 ### 3. Belt policy and the exam cap (in `prep_core`)
 
@@ -641,8 +662,18 @@ Goal 1 therefore covers planned rows plus done rows. A row added by "Mark studie
 
 *   The plan is built the first time Today opens on a study day, and saved. Onboarding builds it at its last step, before writing the onboarding item's first-study row.
 *   Finishing or grading an item marks its row done, and the plan is not rebuilt.
-*   "Mark studied" on an item that is not in the plan (for example during onboarding) adds a done `first_read` row.
+*   "Mark studied" on an item that is not in the plan (for example during onboarding, or a row below the line) adds a done `first_read` row. A graded review of an item that is not in the plan adds a done `review` row in the same way (D16).
 *   Refresh rebuilds the plan and keeps the done rows. Changing daily minutes or the day-start hour also triggers a refresh.
+
+**What Today shows (D16).** `todayLists(PlanInput, plannedIds)` in `prep_core` is pure, like the planner. It adds what the frozen plan leaves out:
+
+*   **Due now.** The plan's open `review` rows, in plan order, then the line, then every other due item (`effectiveDue ≤ today`) in the order of step 2. An overdue row shows "n days overdue", where n is the days since its effective due date.
+*   **Up next.** The plan's open `first_read` rows, then the line, then every other unread item in sort order.
+*   **Coming up.** Every studied item whose effective due date is after today, by date, then in the order of step 2. Days 1–7 are one group each ("Tomorrow", "Thu 29"), days 8–14 are "Next week" and the rest are "Later". Each group shows its count and review minutes. Items done today carry a ✓ and their group says "(n done today)". Rows open the item; there is no Start.
+*   **Header.** "{n} done · {p} of {budget} min", where p is the minutes of every plan row, done or not.
+*   **Sections.** Each is a header with its count and minutes, plus "· {k} fit today" when rows sit below the line. An open section shows at most 5 rows, then "Show all {n}". Coming up's groups are collapsed too. Empty Due now and Up next sections are hidden. When both are empty: "All done for today · next review {day} ({n})".
+*   **Open sections** are saved in settings with the study date, so they reset on the next study day. Until the student changes them, Due now is open when it has rows, otherwise Up next, otherwise Coming up. Coming up's first group starts open.
+*   The waiting count line is gone; waiting items are the rows below the line in Due now. The catch-up offer and Undo catch-up are unchanged.
 
 **Catch-up:**
 
@@ -927,7 +958,7 @@ This runs a structure-mode export and import in memory, with the new exam name a
 
 ### 10. Navigation, state and screens
 
-*   **State.** Riverpod, with plain `Notifier` / `AsyncNotifier` classes and no code generator. Screens watch narrow Drift queries. Today watches the frozen plan rows.
+*   **State.** Riverpod, with plain `Notifier` / `AsyncNotifier` classes and no code generator. Screens watch narrow Drift queries. Today watches the frozen plan rows and the item states, from which `todayLists` adds the rows below the line and Coming up (D16).
 *   **Navigation.** go_router routes: `/onboarding`, `/today`, `/library`, `/item/:id`, `/add`, `/exams`, `/settings`, `/diagnostics`. Notification taps carry a route.
 *   **Session sheets.** The Finish and Grade sheets are bottom sheets shown over Today, not routes.
 
@@ -936,7 +967,7 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | Screen | Contents |
 | --- | --- |
 | Onboarding | Start fresh or Restore; exam, subject, daily minutes, first item; permissions; battery explainer |
-| Today | Plan list (title, belt chip, minutes, Start), summary line, waiting line, catch-up prompt / Undo catch-up, backup banner, Refresh |
+| Today | Header "n done · p of b min"; collapsible Due now, Up next (title, belt chip, minutes, Start, the line) and Coming up (groups by day, view-only); catch-up prompt / Undo catch-up, backup banner, Refresh (D16) |
 | Library | Exam filter; subject → topic/task/subtask tree with "Weakest: X · n/N Green" and a stacked bar; Inbox section; a menu per subject (Rename, Delete subject); New subject |
 | Item | Details, source card (open / re-link / location note), "Why is this due?", last 5 events, Undo latest; menu with Move… and Delete |
 | Add / Quick add | Title + up to 3 taps (last-used subject and topic preselected); full form with "+ New subject…" and "+ New topic…"; a "New" subject chip in Quick add; split tool (only for tasks with no history); in-app folder browser |
@@ -1003,6 +1034,7 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | ExamPackage | Round trip in both modes; remapping of references, `undoes_event_id` and `batch_id`; per-subject ID decision (existing subject linked and skipped; clean subject keeps IDs; clashing subject copied); every `validate` rule; newer format version; privacy fields dropped when notes are off; "add to existing" moves `sort_order` and never targets the Inbox; first free name; Copy as new attempt never merges; `item_state` after import equals the source phone's state |
 | Archive and remove | Shared subjects survive; unshared subjects and their data (including sessions) are removed; nothing is deleted if the export or the read-back check fails; blocked by an open session or a missing backup folder; `last_used_*` cleared |
 | Widgets | Today, Grade sheet, Finish sheet, Library label, Share capture sheet, Import screen |
+| Today sections (D16) | `todayLists`: rows below the line in planner and sort order, Coming up grouping at days 1, 7, 8, 14 and 15, done items leaving due and unread; widget tests of the header, the line, "Show all", the default and saved open sections, and a finished item moving to Coming up |
 | Organising (D15) | Move rules for each kind, the history rule and the copied source; delete only this (subtasks become Inbox tasks, a topic's tasks stay whole) and delete everything; Undo puts every row back; subject create with exams, rename, and delete keeping or dropping items, with the Inbox protected; widget tests of "+ New subject…", the Delete choices with Undo, Move… and the subject menu |
 | Device | Emulator integration tests on API 26 and API 36: session start → finish, backup → restore. Kill-and-relaunch is a manual release check |
 | Layouts (D14) | Widget tests of the shell, Today, Library and Item at 390 × 844, 800 × 1280 and 1280 × 800: the bottom bar or rail, one or two panes, and the selected item kept across a resize |
@@ -1397,6 +1429,7 @@ Each entry records a rejected option and why it was rejected. Reopen one only if
 | M8 | Adaptive layouts: window classes, navigation rail, two panes for Library and Today, reading width (D14) | Every CUJ on a tablet, a foldable and in split screen |
 | M9 | iOS: project, Swift folder channel, Quick Look opener, Share Extension, notifications, privacy manifest, macOS CI (D13) | Every CUJ on iPhone and iPad, except the live timer outside the app |
 | M10 | Organising items: move, delete with orphans to the Inbox and Undo, subject rename and delete, subjects and topics created where they are picked (D15) | CUJ 13 |
+| M11 | Today in three sections: Due now, Up next, Coming up, with the line and saved open sections (D16) | CUJ 14 |
 
 The file-by-file plan, conventions and verification commands are in the [implementation plan](../plans/prepbelt_implementation.md).
 

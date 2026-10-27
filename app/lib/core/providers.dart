@@ -113,6 +113,7 @@ final markStudiedProvider = Provider<MarkStudied>((ref) => MarkStudied(
 final gradeReviewProvider = Provider<GradeReview>((ref) => GradeReview(
     ref.watch(appDatabaseProvider),
     ref.watch(studyWriterProvider),
+    ref.watch(buildTodayPlanProvider),
     ref.watch(localDayClockProvider)));
 
 final undoLatestProvider =

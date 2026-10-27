@@ -145,6 +145,16 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
   }
 
   /// Live reviewable nodes outside the Inbox: the planner's candidates.
+  /// Titles of the nodes in [ids] that exist, keyed by ID.
+  Future<Map<String, String>> titlesOf(Iterable<String> ids) async {
+    final set = ids.toSet();
+    if (set.isEmpty) return const {};
+    return {
+      for (final n in await (select(studyNodes)..where((n) => n.id.isIn(set))).get())
+        n.id: n.title,
+    };
+  }
+
   Future<List<NodeRow>> plannable() async => (await planning()).nodes;
 
   /// [SortKey]s for every live reviewable node, keyed by node ID.

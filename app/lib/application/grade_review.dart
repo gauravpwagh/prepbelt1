@@ -41,10 +41,11 @@ class GradePreview {
 
 /// A graded review (plan item 76).
 class GradeReview {
-  GradeReview(this._db, this._writer, this._dayClock);
+  GradeReview(this._db, this._writer, this._plans, this._dayClock);
 
   final AppDatabase _db;
   final StudyWriter _writer;
+  final BuildTodayPlan _plans;
   final LocalDayClock _dayClock;
 
   Future<GradePreview> preview(String nodeId) async {
@@ -73,7 +74,23 @@ class GradeReview {
     );
   }
 
+  /// Writes the review. An item that is not in today's plan (a row below the
+  /// line, design D16) gets a done `review` row, so the day's minutes count
+  /// it.
   Future<Review> call(String nodeId, Grade grade, int minutes,
           {String? sessionId}) =>
-      _writer.writeReview(nodeId, grade, minutes, sessionId: sessionId);
+      _db.transaction(() async {
+        final plan = await _plans.get();
+        final inPlan = plan.rows.any((r) => r.nodeId == nodeId);
+        final node = (await _db.nodesDao.byId(nodeId))!;
+        final state = await _db.itemStateDao.stateOf(nodeId);
+        final today = _dayClock.today();
+        final due = effectiveDue(state, await deadlineForSubject(_db, node.subjectId, today));
+        final e = await _writer.writeReview(nodeId, grade, minutes, sessionId: sessionId);
+        if (!inPlan && e.localDate == today) {
+          await _db.plansDao.addDoneRow(e.localDate, nodeId, RowType.review, minutes,
+              due != null && due < today ? Reason.overdue : Reason.due, e.atUtc);
+        }
+        return e;
+      });
 }

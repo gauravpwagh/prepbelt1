@@ -41,7 +41,8 @@ void main() {
 
     expect(find.byKey(const Key('today-summary')), findsOneWidget);
     expect(find.text('k1 · st1'), findsOneWidget);
-    expect(find.textContaining('min new reading'), findsOneWidget);
+    expect(find.textContaining(' done · '), findsOneWidget);
+    expect(find.byKey(const Key('section-next')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('start-st1')));
     await tester.pumpAndSettle();

@@ -706,6 +706,15 @@ Starts after the Android internal test, and after the author answers the design'
 125. **`features/item`** (Modify): the menu has Move… (`widgets/move_sheet.dart`, `moveChoicesProvider`) and Delete, which asks when the item has children and offers Undo. **`features/library`** (Modify): a menu per subject (Rename, Delete subject) and a New subject row.
 126. **Tests** (Modify `test/application/use_cases_test.dart`, Create `test/features/organize_test.dart`): the rules in the design's "Organising (D15)" test row.
 
+### M11: Today in three sections (design D16, §4)
+
+127. **`packages/prep_core/lib/src/today_lists.dart`** (Create): `todayLists(PlanInput, plannedIds)` returns the due and unread items below the line and Coming up (`UpcomingItem`, by date then planner order); `upcomingBucket` groups days 1–7, 8–14 and later. Pure, with tests.
+128. **`app/lib/application/grade_review.dart`** (Modify): a review of an item that is not in today's plan adds a done `review` row, as `MarkStudied` does for first readings. **`build_today_plan.dart`** (Modify): `inputWithNodes` also returns the planned nodes.
+129. **`app/lib/data/daos/settings_dao.dart`** (Modify): `today_open_sections` with `todayOpenSections(date)` and `setTodayOpenSections`. **`nodes_dao.dart`** (Modify): `titlesOf(ids)`.
+130. **`features/today/today_providers.dart`** (Modify): `TodayView` with the header, Due now and Up next (plan rows, then the rows below the line), Coming up groups with done-today marks; `todayOpenSectionsProvider`.
+131. **`features/today/today_screen.dart`** (Modify): collapsible sections with saved open state, 5 rows then "Show all", the dashed line, view-only Coming up rows, the all-done line. The waiting line is removed.
+132. **Tests** (Create `test/features/today_sections_test.dart`, `packages/prep_core/test/today_lists_test.dart`; Modify `test/features/widgets_test.dart`): the design's "Today sections (D16)" test row.
+
 --------------------------------------------------------------------------------
 
 ## Verification Plan

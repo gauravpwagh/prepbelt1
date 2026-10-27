@@ -43,6 +43,12 @@ class BuildTodayPlan {
   /// Every reviewable item outside the Inbox, with its state, deadline and
   /// sort key.
   Future<PlanInput> input(LocalDate today,
+          {List<DoneRow> done = const []}) async =>
+      (await inputWithNodes(today, done: done)).input;
+
+  /// [input] with the planned nodes, keyed by ID (Today lists them, D16).
+  Future<({PlanInput input, Map<String, NodeRow> nodes})> inputWithNodes(
+      LocalDate today,
       {List<DoneRow> done = const []}) async {
     final (:nodes, :keys) = await _db.nodesDao.planning();
     final states = await _db.itemStateDao.all();
@@ -58,7 +64,7 @@ class BuildTodayPlan {
     Deadline? deadlineOf(String subjectId) => deadlines.putIfAbsent(
         subjectId, () => resolveDeadline(refs[subjectId] ?? const [], today));
 
-    return PlanInput(
+    final in_ = PlanInput(
       today: today,
       budget: await _db.settingsDao.dailyMinutes(),
       done: done,
@@ -74,6 +80,7 @@ class BuildTodayPlan {
           ),
       ],
     );
+    return (input: in_, nodes: {for (final n in nodes) n.id: n});
   }
 }
 

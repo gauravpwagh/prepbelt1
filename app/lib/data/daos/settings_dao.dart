@@ -21,6 +21,7 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
   static const onboardingDoneKey = 'onboarding_done';
   static const lastUsedSubjectIdKey = 'last_used_subject_id';
   static const lastUsedTopicIdKey = 'last_used_topic_id';
+  static const todayOpenSectionsKey = 'today_open_sections';
 
   Future<String?> _get(String key) async =>
       (await (select(settings)..where((s) => s.key.equals(key)))
@@ -86,4 +87,16 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
 
   Future<String?> lastUsedTopicId() => _get(lastUsedTopicIdKey);
   Future<void> setLastUsedTopicId(String? id) => _set(lastUsedTopicIdKey, id);
+
+  /// The Today sections the student left open on [date] (design D16), or
+  /// null when none were saved that study day.
+  Future<Set<String>?> todayOpenSections(LocalDate date) async {
+    final v = await _get(todayOpenSectionsKey);
+    final prefix = '${date.toIso()}:';
+    if (v == null || !v.startsWith(prefix)) return null;
+    return {for (final s in v.substring(prefix.length).split(',')) if (s.isNotEmpty) s};
+  }
+
+  Future<void> setTodayOpenSections(LocalDate date, Set<String> open) =>
+      _set(todayOpenSectionsKey, '${date.toIso()}:${open.join(',')}');
 }
