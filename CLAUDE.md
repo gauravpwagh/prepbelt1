@@ -4,7 +4,7 @@ Context for Claude Code working in this repository. Read this first.
 
 ## What this is
 
-PrepBelt is an offline Android app, built in Flutter, for competitive-exam preparation. It does four things:
+PrepBelt is an offline Android app, built in Flutter, for competitive-exam preparation. iOS (iPhone and iPad) and tablet layouts are in scope as milestones M8 and M9 (design D13, D14, §13); the design's open questions for them need the author's answers before M9. It does four things:
 
 *   tracks study items under exams and subjects;
 *   schedules reviews on a fixed belt ladder, capped by exam dates;
@@ -33,6 +33,8 @@ All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 1
 | M6 backups and catch-up | Done: routine/safety/pre-migration backups, restore, catch-up card. |
 | M6b exam files | Done: export, import with clash choices, copy as new attempt, archive and remove. |
 | M7 diagnostics | Done: rotating logs, crash.log, Share logs, Diagnostics, 5k-item seed. |
+| M8 adaptive layouts | Planned (plan items 106–111). |
+| M9 iOS | Planned (plan items 112–119); waits for the Android internal test and Open Questions 1–4. |
 
 ## Releasing
 

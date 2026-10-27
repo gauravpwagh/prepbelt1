@@ -671,6 +671,28 @@ Each feature has its own screens or sheets, providers and widgets, with the cont
     *   `exam_export_import_test.dart`: exports with progress, wipes, imports, and compares the belts.
 104. **`app/test/perf/seed_5k.dart`**: seeds 5,000 items with history for profiling.
 
+### M8: adaptive layouts (design D14, §13)
+
+106. **`app/lib/core/layout.dart`** (Create): `WindowClass { compact, medium, expanded }` and `windowClassOf(context)` from `MediaQuery.sizeOf(context).width` (600 and 840 logical pixels). The only place that reads the breakpoints. Also `ReadingWidth`, which centres a child at 640 dp at most.
+107. **`app/lib/router.dart`** (Modify): `HomeShell` shows a `NavigationBar` when compact and a `NavigationRail` otherwise, with the same branches. Adds `/library/item/:id` and `/today/item/:id` inside their branches for the two-pane layout.
+108. **`app/lib/core/widgets/two_pane.dart`** (Create): `TwoPane(list, detail, placeholder)`. Expanded shows both; otherwise only the list, and a selection pushes `/item/:id`. A resize keeps the selection.
+109. **`features/library` and `features/today`** (Modify): use `TwoPane`; a row tap selects instead of pushing when expanded. The Item screen gets an `embedded` mode without its own app bar.
+110. **Forms and settings** (Modify): onboarding, Add, Split, Exams, Import, Settings and Diagnostics are wrapped in `ReadingWidth`; bottom sheets get `constraints: BoxConstraints(maxWidth: 640)`.
+111. **`app/test/features/layout_test.dart`** (Create): the shell, Today, Library and Item at 390 × 844, 800 × 1280 and 1280 × 800; rail versus bar; one or two panes; the selection survives a resize.
+
+### M9: iOS (design D13, §13)
+
+Starts after the Android internal test, and after the author answers the design's Open Questions 1–4.
+
+112. **`app/ios/`** (Create with `flutter create --platforms=ios`): bundle id `io.github.gauravpwagh.prepbelt`, deployment target from Open Question 1, display name PrepBelt, the app icon from `tool/make_icon.py`, `PrivacyInfo.xcprivacy`, a document type for `.prepbelt.json`, and no background modes.
+113. **`app/ios/Runner/FilesChannel.swift`** (Create): the `prepbelt/files` channel. `pickFolder`, `bookmarks`, `walk`, `list`, `copyToLocal`, `writeFile`, `delete`, each inside `startAccessingSecurityScopedResource`, with `NSFileCoordinator` for iCloud files.
+114. **`app/lib/platform/folder_access.dart`** (Modify): `BookmarkFolderAccess` on that channel, chosen on iOS in `core/providers.dart`. A bookmark is stored in `source_folders.tree_uri`; no schema change.
+115. **`app/lib/platform/source_opener.dart`** (Modify): `IosSourceOpener`, with PDFs in Quick Look and links through `url_launcher`.
+116. **Share Extension** (Create): the target and App Group that `receive_sharing_intent` needs; `IntentShareReceiver` skips `takeShareSubject` on iOS.
+117. **`app/lib/platform/notification_port.dart`** and **`device_status.dart`** (Modify): Darwin settings; `showOngoingSession` does nothing on iOS; `batteryOptimizationIgnored()` returns null, and the battery explainer and Diagnostics row are hidden.
+118. **CI** (Modify `.github/workflows/ci.yaml`): a macOS job that runs the app tests and `flutter build ios --no-codesign`, plus a check of the privacy manifest and the absence of networking entitlements.
+119. **Release docs** (Create `docs/release/RELEASE-ios.md`): signing, TestFlight, App Store privacy answers.
+
 --------------------------------------------------------------------------------
 
 ## Verification Plan

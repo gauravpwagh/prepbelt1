@@ -2,6 +2,7 @@
 
 *   **Author:** vijwagh31@gmail.com
 *   **Status:** Approved for implementation. Goldfish review round 1, the re-check and a focused review of §8a (exam export and import) are all resolved. D12 was added during M1.
+*   **Amendment (2026-10-27):** iOS and tablet layouts brought into scope by the author (D13, D14, §13, M8, M9). The amendment's open questions are listed below; it has not had a Goldfish review yet.
 *   **Date:** 2026-10-26
 *   **Predecessor:** [concepts_brief.md](../../claude/concepts_brief.md)
 *   **Implementation plan:** [docs/plans/prepbelt_implementation.md](../plans/prepbelt_implementation.md)
@@ -11,7 +12,7 @@
 
 ## Overview
 
-PrepBelt is an offline Android app, built with Flutter, for students preparing for one or more competitive exams. The student creates exams with dates. They add study items (reading, previous-year-question practice and similar) under subjects and topics, and they split large sources into chapters or page ranges.
+PrepBelt is an offline app for Android, built with Flutter, for students preparing for one or more competitive exams. An iOS version (iPhone and iPad) follows the Android release (D13), and every screen adapts to tablets and foldables (D14). The student creates exams with dates. They add study items (reading, previous-year-question practice and similar) under subjects and topics, and they split large sources into chapters or page ranges.
 
 When an item is first studied, it enters a review schedule. After each review the student grades it **Forgot**, **Shaky** or **Solid**.
 
@@ -123,7 +124,7 @@ These are out of scope for version 1. Where later support needs data, that data 
     *   No merging a whole-app backup into existing data. Restore replaces everything, after taking a safety backup.
     *   Exam imports never merge rows that already exist. They only add new rows (§8a).
 *   **Permissions-heavy features:** no floating timer overlay, and no automatic detection of reading time.
-*   **Platform and sync:** no cloud sync, accounts, iOS, tablet-first layouts or network access.
+*   **Platform and sync:** no cloud sync, accounts, web version or network access. (iOS and tablet layouts were moved into scope by D13 and D14. A web version was considered and left out: the app's files-on-the-device, no-network design does not fit a browser.)
 *   **Flashcards:** no flashcards or question–answer content.
 *   **Diagnostics extras:**
     *   No debug bundle containing the database.
@@ -173,9 +174,27 @@ These are out of scope for version 1. Where later support needs data, that data 
         *   In exam week, the catch-up prompt states the shortfall in minutes, for example: "3 reviews can't fit before MPSC Prelims at 90 min/day — about 15 more min/day would fit them."
         *   The figure is `ceil(minutes that don't fit / days left before the exam)`, computed by `Proposal.extraMinutesPerDay`.
 
+*   **D13: iOS is in scope, after the Android release** (author decision, 2026-10-27).
+    *   **Same app.** One Flutter codebase. `prep_core`, the Drift schema, the event log, the belt rules, the planner and every CUJ stay the same. iOS differs only in `app/lib/platform/` and the iOS project, as set out in §13.
+    *   **Devices.** iPhone and iPad.
+    *   **Bundle identifier.** `io.github.gauravpwagh.prepbelt`, the same as the Android id (D4). It becomes permanent after the first App Store Connect upload.
+    *   **Native code on iOS.** One Swift channel for folder access (§13). It is the iOS counterpart of D8 and is kept as small as the Kotlin one.
+    *   **Order.** iOS work starts after the Android internal test (M9). The Android release does not wait for it.
+*   **D14: Layouts adapt to the window size** (author decision, 2026-10-27).
+    *   It applies to Android tablets, foldables, split-screen windows and iPad. Layout follows the window width, never the device type.
+    *   **Compact (< 600 dp):** today's phone layout, unchanged.
+    *   **Medium (600–839 dp):** a navigation rail replaces the bottom bar, and content is centred with a maximum width.
+    *   **Expanded (≥ 840 dp):** the rail, plus two panes for Library and Today: the list on the left and the selected item on the right.
+    *   Behaviour, routes and data are unchanged; only presentation differs (§13).
+
 ## Open Questions
 
-None.
+These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
+
+1.  **Lowest iOS version.** Proposed: iOS 15. It covers almost all phones in use, and every plugin in the stack supports it.
+2.  **iOS device backup.** On Android, Auto Backup is off (D9). On iOS, iCloud and computer backups include the app's files by default, and users expect a restored iPhone to bring its apps' data back. Proposed: leave iOS device backup on, and keep the app's own backups as the main path. The alternative is to exclude the database from device backup, matching D9.
+3.  **The ongoing timer on iOS.** iOS has no ongoing notification with a chronometer. Proposed for M9: no live timer outside the app. The open session lives in the database; reopening the app shows the Finish sheet, and the "Still on…?" reminder still fires. A Live Activity on the Lock Screen is a Future Improvement.
+4.  **Mac and Apple account.** iOS builds need a Mac with Xcode, and TestFlight needs an Apple Developer Program membership. The development PC is Windows. Proposed: CI builds and tests iOS on a macOS runner without signing, and signed builds wait until a Mac and an account are available.
 
 --------------------------------------------------------------------------------
 
@@ -936,6 +955,44 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | Archive and remove | Shared subjects survive; unshared subjects and their data (including sessions) are removed; nothing is deleted if the export or the read-back check fails; blocked by an open session or a missing backup folder; `last_used_*` cleared |
 | Widgets | Today, Grade sheet, Finish sheet, Library label, Share capture sheet, Import screen |
 | Device | Emulator integration tests on API 26 and API 36: session start → finish, backup → restore. Kill-and-relaunch is a manual release check |
+| Layouts (D14) | Widget tests of the shell, Today, Library and Item at 390 × 844, 800 × 1280 and 1280 × 800: the bottom bar or rail, one or two panes, and the selected item kept across a resize |
+| iOS (D13) | The same unit and widget tests on a macOS CI runner; integration tests on an iOS simulator; manual checks of folder access, Share Extension, notifications and restore on a real iPhone |
+
+### 13. iOS and tablet layouts (D13, D14)
+
+#### Platform layer on iOS
+
+Every row below is an implementation of an interface that already exists in `app/lib/platform/`. Since the 2026-10-27 cleanup, only `data/` and `platform/` touch `dart:io` (implementation plan item 105), so nothing above them changes.
+
+| Interface | Android (today) | iOS |
+| --- | --- | --- |
+| `FolderAccess` | `saf`: persisted tree URIs | Swift channel `prepbelt/files`: the folder picker (`UIDocumentPickerViewController` for folders), security-scoped bookmarks stored in place of tree URIs, and list, walk, read-copy, write and delete inside a bookmarked folder. iCloud Drive files that are not downloaded are fetched through `NSFileCoordinator` |
+| `SourceOpener` | `ACTION_VIEW` intent through `android_intent_plus` | PDFs open in an in-app Quick Look preview, with the system "Open in…" menu for other readers. Web, AI-chat and app links use `url_launcher`, as on Android |
+| `ShareReceiver` | `receive_sharing_intent` with Android intent filters | The same plugin with a Share Extension target and an App Group. The share subject line is not available, so titles use the other fallbacks in §7 |
+| `NotificationPort` | Ongoing chronometer notification, "Still on…?", daily reminder | Daily reminder and "Still on…?" as local notifications. No ongoing notification (Open Question 3) |
+| `DeviceStatus` | Battery-optimisation state through the Kotlin channel | Not applicable. The battery explainer is hidden, and Diagnostics shows "Not applicable on iOS" |
+| `FileSharer`, `LocalFiles` | `share_plus`, `dart:io` | The same; the share sheet needs a source rectangle on iPad |
+
+*   **Folders, not files, still holds.** A folder bookmark covers every file below it, which is the iOS counterpart of §7's reason for granting folders.
+*   **Exam files.** PrepBelt declares a document type for `.prepbelt.json`, so tapping one in Files or Mail offers PrepBelt, and it arrives through the same Import flow as a share (§8a "Receiving exam files").
+*   **Restore on a new iPhone.** Bookmarks don't move between devices, just as tree URIs don't on Android. Restore marks folders "pick again", and Re-link by folder works unchanged (CUJ 7).
+*   **Database location.** Application Support, the same `prepbelt.sqlite`. Device backup follows Open Question 2.
+*   **Privacy.** No network use, as on Android: no networking code and no App Transport Security exceptions. The app ships a privacy manifest (`PrivacyInfo.xcprivacy`) declaring the required-reason APIs the plugins use. The App Store privacy label is "Data Not Collected".
+*   **Release rules for iOS**, the counterpart of the Android rules: no network entitlement or background modes, local notifications only, and no tracking.
+
+#### Adaptive layouts
+
+*   **Window classes.** Read from `MediaQuery.sizeOf(context).width` in one place (`core/layout.dart`): compact < 600, medium 600–839, expanded ≥ 840 logical pixels.
+*   **Navigation.** Compact keeps the bottom `NavigationBar`. Medium and expanded use a `NavigationRail` with the same destinations, in the same `StatefulShellRoute`.
+*   **Two panes (expanded).**
+    *   **Library:** the tree on the left (360–420 dp wide); the selected item's screen on the right. Selecting a row shows the item instead of pushing `/item/:id`, and the URL still becomes `/library/item/:id` so that back and deep links work.
+    *   **Today:** the plan list on the left, the selected item on the right. Start, the Finish sheet and the Grade sheet behave as on the phone.
+    *   With nothing selected, the right pane shows a short hint.
+    *   On a resize to compact, a selected item becomes a pushed Item screen; on a resize back, it returns to the right pane.
+*   **Reading width.** Forms, Settings, Exams, Diagnostics and onboarding are centred, with a maximum content width of 640 dp.
+*   **Sheets.** Bottom sheets stay bottom sheets, with a maximum width of 640 dp. Dialogs keep their Material size.
+*   **Orientation.** Both orientations on every device. The app does not lock orientation.
+*   **Input.** Hardware keyboards and pointers work through the Material widgets' defaults. Enter submits Quick add.
 
 --------------------------------------------------------------------------------
 
@@ -1239,6 +1296,9 @@ Each entry records a rejected option and why it was rejected. Reopen one only if
 | R10 | `receive_sharing_intent` is abandoned, or Android revokes a shared file's access before it is read | Sharing stops working, or a shared PDF arrives without its name and size | Sharing sits behind the `ShareReceiver` interface, so the plugin can be swapped; name and size are read the moment the share arrives; a PDF that can't be read is saved as a not-linked source titled from the share subject | D10, §7 |
 | R11 | An exam file leaks private content, or an import goes wrong | Private excerpts, AI-chat links or exam names leak when sharing; data is duplicated or corrupted | Private fields are off by default in structure exports; progress shares show a warning; imports are fully validated and run in one transaction; IDs are decided per subject, and existing rows are never changed | §8a |
 | R12 | "Export and remove" deletes data the user wanted to keep | Permanent loss of exam history | A backup folder is required; the file is read back and checked before any delete; the user types the exam name to confirm; shared subjects are kept; running sessions block the archive | §8a |
+| R13 | iOS folder bookmarks go stale, or an iCloud Drive file is not downloaded when opened | Sources and backups fail on iPhone | Stale bookmarks are refreshed when iOS allows it, and otherwise the folder shows "pick again"; files are fetched through `NSFileCoordinator`; Re-link by folder | §13 |
+| R14 | With no ongoing notification on iOS, students forget a running timer | Inflated or discarded minutes | The "Still on…?" reminder; the Finish sheet on every open; the stale-session rule in §6 | §6, §13 |
+| R15 | The Windows development PC cannot build or run iOS | iOS problems are found late | macOS CI builds and tests every change once M9 starts; manual checks on a real iPhone before TestFlight | D13 |
 
 --------------------------------------------------------------------------------
 
@@ -1283,6 +1343,8 @@ Each entry records a rejected option and why it was rejected. Reopen one only if
 | M6 | Backups, pre-migration backup, restore, catch-up UI | CUJ 5, CUJ 7 |
 | M6b | Exam export and import, copy as new attempt, archive and remove | CUJ 9–12 |
 | M7 | Diagnostics, logging, Share logs, performance pass | Goals 10, 11 |
+| M8 | Adaptive layouts: window classes, navigation rail, two panes for Library and Today, reading width (D14) | Every CUJ on a tablet, a foldable and in split screen |
+| M9 | iOS: project, Swift folder channel, Quick Look opener, Share Extension, notifications, privacy manifest, macOS CI (D13) | Every CUJ on iPhone and iPad, except the live timer outside the app |
 
 The file-by-file plan, conventions and verification commands are in the [implementation plan](../plans/prepbelt_implementation.md).
 
@@ -1294,6 +1356,7 @@ The file-by-file plan, conventions and verification commands are in the [impleme
 *   Pause; per-weekday budgets; base-time calibration from sessions; review cost by belt.
 *   Backups that include source files; JSON export; merge on import.
 *   Debug bundle with a redacted database; crash-exit detection.
+*   A Live Activity for the running timer on iOS.
 
 --------------------------------------------------------------------------------
 
