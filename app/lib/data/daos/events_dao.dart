@@ -48,6 +48,16 @@ class EventsDao extends DatabaseAccessor<AppDatabase> with _$EventsDaoMixin {
           toStudyEvent(r),
       ];
 
+  /// Nodes that have any `reschedule` event (candidates for the planner's
+  /// `catch_up` reason).
+  Future<Set<String>> nodesWithReschedule() async => {
+        for (final r in await (selectOnly(reviewEvents, distinct: true)
+              ..addColumns([reviewEvents.nodeId])
+              ..where(reviewEvents.eventType.equals('reschedule')))
+            .get())
+          r.read(reviewEvents.nodeId)!,
+      };
+
   /// All events of [nodeId], undos included (`canAddChild`, `canSplit`).
   Future<int> countFor(String nodeId) async {
     final count = reviewEvents.id.count();

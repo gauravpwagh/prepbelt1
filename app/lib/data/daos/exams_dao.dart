@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:prep_core/prep_core.dart';
 
 import '../db/app_database.dart';
 import '../db/tables.dart';
@@ -31,6 +32,20 @@ class ExamsDao extends DatabaseAccessor<AppDatabase> with _$ExamsDaoMixin {
         ..where((e) => e.archivedAt.isNull())
         ..orderBy([(e) => OrderingTerm.asc(e.examDate)]))
       .watch();
+
+  /// Every exam linked to each subject, as `prep_core` refs.
+  Future<Map<String, List<ExamRef>>> examRefsBySubject() async {
+    final rows = await select(exams).join([
+      innerJoin(examSubjects, examSubjects.examId.equalsExp(exams.id)),
+    ]).get();
+    final bySubject = <String, List<ExamRef>>{};
+    for (final r in rows) {
+      final e = r.readTable(exams);
+      (bySubject[r.readTable(examSubjects).subjectId] ??= []).add(ExamRef(
+          id: e.id, name: e.name, date: e.examDate, archived: e.archivedAt != null));
+    }
+    return bySubject;
+  }
 
   /// Every exam (archived or not) linked to [subjectId].
   Future<List<ExamRow>> examsForSubject(String subjectId) {

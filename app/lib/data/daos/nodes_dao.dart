@@ -51,6 +51,9 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
           (n) => OrderingTerm.asc(n.id),
         ]);
 
+  /// Every live node, in sort order within each parent.
+  Future<List<NodeRow>> allLive() => _ordered((n) => const Constant(true)).get();
+
   /// Live children of [parentId], in sort order.
   Future<List<NodeRow>> children(String parentId) =>
       _ordered((n) => n.parentId.equals(parentId)).get();
@@ -59,6 +62,20 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
   Future<List<NodeRow>> roots(String subjectId) =>
       _ordered((n) => n.subjectId.equals(subjectId) & n.parentId.isNull())
           .get();
+
+  /// The next `sort_order` among the siblings of a new node (live or not).
+  Future<int> nextSortOrder(String subjectId, String? parentId) async {
+    final max = studyNodes.sortOrder.max();
+    final row = await (selectOnly(studyNodes)
+          ..addColumns([max])
+          ..where(studyNodes.subjectId.equals(subjectId) &
+              (parentId == null
+                  ? studyNodes.parentId.isNull()
+                  : studyNodes.parentId.equals(parentId))))
+        .getSingle();
+    final m = row.read(max);
+    return m == null ? 0 : m + 1;
+  }
 
   Future<int> liveChildCount(String parentId) async {
     final count = studyNodes.id.count();
@@ -102,6 +119,13 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
     ).get();
     return [for (final r in rows) Belt.fromKey(r.read<String>('belt'))];
   }
+
+  /// Live reviewable nodes outside the Inbox: the planner's candidates.
+  Future<List<NodeRow>> plannable() => customSelect(
+        'SELECT n.* FROM study_nodes n JOIN subjects s ON s.id = n.subject_id'
+        ' WHERE s.is_inbox = 0 AND $reviewableSql',
+        readsFrom: {studyNodes, subjects},
+      ).asyncMap(studyNodes.mapFromRow).get();
 
   /// [SortKey]s for every live reviewable node, keyed by node ID.
   Future<Map<String, SortKey>> sortKeys() async {

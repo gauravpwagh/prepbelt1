@@ -85,8 +85,10 @@ class SubjectsDao extends DatabaseAccessor<AppDatabase>
     return q.map((r) => r.readTable(subjects)).get();
   }
 
-  /// Subjects whose name is exactly [name], the Inbox included; callers that
-  /// must never match the Inbox filter on `isInbox`.
-  Future<List<SubjectRow>> findByName(String name) =>
-      (select(subjects)..where((s) => s.name.equals(name))).get();
+  /// Subjects named [name], ignoring case (as `firstFreeName` does), the
+  /// Inbox included; callers that must never match the Inbox filter on
+  /// `isInbox`.
+  Future<List<SubjectRow>> findByName(String name) => (select(subjects)
+        ..where((s) => s.name.lower().equals(name.trim().toLowerCase())))
+      .get();
 }
