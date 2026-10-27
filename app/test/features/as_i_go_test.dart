@@ -7,6 +7,7 @@ import 'package:prepbelt/app.dart';
 import 'package:prepbelt/application/add_item.dart';
 import 'package:prepbelt/application/mark_studied.dart';
 import 'package:prepbelt/core/providers.dart';
+import 'package:prepbelt/router.dart';
 
 import '../application/app_helpers.dart';
 
@@ -79,6 +80,32 @@ void main() {
       expect(await f.db.eventsDao.countFor(task), 1);
     });
 
+    test('an added task can be switched to split as you go', () async {
+      await f.node('k1', 'sub1', NodeKind.task);
+      final split = c.read(splitItemProvider);
+      expect(await split.asIGoAllowed('k1'), isTrue);
+      await split.asIGo('k1');
+      expect((await f.db.nodesDao.byId('k1'))!.splitAsIGo, SplitAsIGo.open);
+      expect(await c.read(markStudiedProvider).nextPart('k1'), 'Part 1');
+      expect(await split.asIGoAllowed('k1'), isFalse); // already
+
+      // Stop splitting with no parts: an ordinary task that can switch again.
+      await c.read(markStudiedProvider).finish('k1');
+      expect(await split.asIGoAllowed('k1'), isTrue);
+    });
+
+    test('a studied task or one with subtasks cannot switch', () async {
+      await f.node('k1', 'sub1', NodeKind.task);
+      await f.node('k2', 'sub1', NodeKind.task, order: 1);
+      await f.node('st1', 'sub1', NodeKind.subtask, parent: 'k2');
+      await f.writer.writeFirstStudy('k1', 30);
+      final split = c.read(splitItemProvider);
+      expect(await split.asIGoAllowed('k1'), isFalse);
+      expect(await split.asIGoAllowed('k2'), isFalse);
+      expect(() => split.asIGo('k1'), throwsStateError);
+      expect((await f.db.nodesDao.byId('k2'))!.splitAsIGo, isNull);
+    });
+
     test('only tasks can be split as you go', () async {
       expect(
           () => c.read(addItemProvider)(const AddItemRequest(
@@ -126,6 +153,40 @@ void main() {
       final node = (await f.db.nodesDao.allLive()).singleWhere((n) => n.title == 'Spectrum');
       expect(node.splitAsIGo, SplitAsIGo.open);
       expect(find.text('Spectrum · next part'), findsOneWidget); // on Today
+      await tearDownApp(tester);
+    });
+
+    testWidgets('Split into parts offers "As I go" for an added task', (tester) async {
+      await f.node('k1', 'sub1', NodeKind.task);
+      await pumpApp(tester);
+      c.read(routerProvider).push('/item/k1');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('item-split')));
+      await tester.pumpAndSettle();
+      expect(find.text('Split into parts'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('split-as-i-go')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Name each part as you study it'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('split-save')));
+      await tester.pumpAndSettle();
+
+      expect((await f.db.nodesDao.byId('k1'))!.splitAsIGo, SplitAsIGo.open);
+      expect(find.text('Split as I go'), findsOneWidget); // the item's chip
+      expect(find.byKey(const Key('item-split')), findsNothing);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Stop splitting'), findsOneWidget);
+      await tearDownApp(tester);
+    });
+
+    testWidgets('a task with subtasks is not offered "As I go"', (tester) async {
+      await f.node('k1', 'sub1', NodeKind.task);
+      await f.node('st1', 'sub1', NodeKind.subtask, parent: 'k1');
+      await pumpApp(tester);
+      c.read(routerProvider).push('/add/split/k1');
+      await tester.pumpAndSettle();
+      expect(find.text('Chapters'), findsOneWidget);
+      expect(find.byKey(const Key('split-as-i-go')), findsNothing);
       await tearDownApp(tester);
     });
 

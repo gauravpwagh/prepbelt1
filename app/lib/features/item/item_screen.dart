@@ -104,7 +104,10 @@ class _ItemBody extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     await ref.read(markStudiedProvider).finish(v.node.id);
     await ref.read(buildTodayPlanProvider).refresh();
-    messenger.showSnackBar(SnackBar(content: Text('"${v.node.title}" is finished')));
+    messenger.showSnackBar(SnackBar(
+        content: Text(v.children.isEmpty
+            ? '"${v.node.title}" is no longer split as you go'
+            : '"${v.node.title}" is finished')));
   }
 
   Future<void> _move(BuildContext context, WidgetRef ref) async {
@@ -143,7 +146,10 @@ class _ItemBody extends ConsumerWidget {
               _ => null,
             },
             itemBuilder: (_) => [
-              if (v.asIGo) const PopupMenuItem(value: 'finish', child: Text('Mark finished')),
+              if (v.asIGo)
+                PopupMenuItem(
+                    value: 'finish',
+                    child: Text(v.children.isEmpty ? 'Stop splitting' : 'Mark finished')),
               const PopupMenuItem(value: 'move', child: Text('Move…')),
               const PopupMenuItem(value: 'delete', child: Text('Delete')),
             ],
@@ -249,7 +255,7 @@ class _ItemBody extends ConsumerWidget {
               OutlinedButton.icon(
                 key: const Key('item-split'),
                 icon: const Icon(Icons.call_split),
-                label: const Text('Split into chapters'),
+                label: const Text('Split into parts'),
                 onPressed: () => context.push('/add/split/${n.id}'),
               ),
             if (n.kind == NodeKind.task && !v.canSplit_ && !v.asIGo)

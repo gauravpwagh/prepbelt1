@@ -723,6 +723,7 @@ Starts after the Android internal test, and after the author answers the design'
 136. **`app/lib/core/widgets/part_fields.dart`** (Create): "What did you cover?" and "That was the last part", used by the Finish and Mark studied sheets.
 137. **Features** (Modify): the Add form's "Split as I go" switch; the Item screen's part count, Start, "Mark part studied" and Mark finished; "· next part" on Today; "Split as I go" in the Library.
 138. **Tests** (Create `test/features/as_i_go_test.dart`, `packages/prep_core/test/as_i_go_test.dart`; Modify the schema-version expectations in `logging_test.dart` and `backup_restore_test.dart`): the design's "Split as I go (D17)" test row.
+139. **Switching an added task** (fifth amendment; Modify `split_item.dart`: `asIGoAllowed`, `asIGo`; `split_fields.dart`: the optional "As I go" choice; `split_sheet.dart`: "Split into parts" with that choice; `item_screen.dart`: "Split into parts" and "Stop splitting" while there are no parts; tests in `as_i_go_test.dart`).
 
 --------------------------------------------------------------------------------
 

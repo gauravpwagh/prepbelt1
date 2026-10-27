@@ -6,6 +6,7 @@
 *   **Amendment (2026-10-27, second):** organising items brought into scope by the author (D15, §10a, CUJ 13, M10): move, delete that can keep children, subject rename and delete, and creating a subject or topic where it is picked. Not yet reviewed.
 *   **Amendment (2026-10-27, third):** Today in three collapsible sections, Due now, Up next and Coming up, with the daily minutes shown as a line instead of a filter (D16, §4, CUJ 14, M11). The planner's rules are unchanged. Not yet reviewed.
 *   **Amendment (2026-10-27, fourth):** splitting a task as you go (D17, §10b, CUJ 15, M12), with schema v2. Not yet reviewed.
+*   **Amendment (2026-10-27, fifth):** a task already added, not yet studied and without subtasks, can be switched to split as you go from its Split screen (D17, §10b, CUJ 15). No schema change. Not yet reviewed.
 *   **Date:** 2026-10-26
 *   **Predecessor:** [concepts_brief.md](../../claude/concepts_brief.md)
 *   **Implementation plan:** [docs/plans/prepbelt_implementation.md](../plans/prepbelt_implementation.md)
@@ -203,7 +204,7 @@ These are out of scope for version 1. Where later support needs data, that data 
     *   **Exams are unchanged.** An exam is still removed only by Archive → Export and remove (§8a).
 *   **D17: A task can be split as you go** (author decision, 2026-10-27). Rules in §10b.
     *   **Why.** Splitting needs the parts up front. Many sources (a long book, a PDF without chapters, a course) are only divided while they are read.
-    *   **Choice on Add.** The Add form's split section offers **Split as I go** next to the one-shot split. It is chosen when the task is added. A task already studied as one piece can't become "as I go", because its history can't be divided between parts.
+    *   **Choice on Add, or later.** The Add form's split section offers **Split as I go** next to the one-shot split. A task already added (from Share to app, say) can switch later: its **Split into parts** screen offers **As I go** next to Chapters, Pages and Custom, while the task has no review history and no subtasks. A task already studied as one piece can't become "as I go", because its history can't be divided between parts; a task with subtasks already has its parts.
     *   **Each session names its part.** The Finish and Mark studied sheets ask "What did you cover?" with free text, pre-filled from the previous part ("Ch 3" → "Ch 4", "pp. 21–40" → "pp. 41–60"). Saving creates that part as a subtask, studied now, at Red.
     *   **Base time** of a part is the minutes actually studied, kept within 10–50, so its reviews cost what the part took.
     *   **The end.** "That was the last part" on those sheets, or **Mark finished** in the item menu, ends it. The task is then an ordinary task with subtasks.
@@ -443,6 +444,7 @@ These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
 *   **Then**:
     *   "Ch 1–2" is a subtask at Red with a base time of 35 minutes, due tomorrow; the task's belt bar counts it.
     *   Until the last part, the task shows in Up next as "next part"; afterwards it does not, and its parts are reviewed like any subtasks.
+*   **Variant**: a PDF shared into PrepBelt is saved as an ordinary task. Before studying it, the user opens it, taps **Split into parts**, chooses **As I go** and taps Split; from then on it behaves as above. Once studied as one piece, **As I go** is not offered.
 
 ### CUJ 12: Archive a finished exam to a file
 
@@ -1045,7 +1047,8 @@ This runs a structure-mode export and import in memory, with the new exam name a
     The task can then show again below the line in Up next, so the student can go on to the next part the same day.
 *   **Pre-filled title** (`nextPartTitle`). From the previous part's title: a trailing range "a–b" becomes "(b+1)–(2b−a+1)"; otherwise the last number in the title goes up by one; a title without a number, or no part yet, gives "Part {n+1}".
 *   **Guards.** `StudyWriter` refuses a `first_study` on an open "as I go" task, so its history stays on the parts. Undo of a part's first study leaves the part as an unread subtask, which the student can delete.
-*   **Mark finished** sets `done`. A finished task with no parts is an ordinary unread task.
+*   **Switching an added task** (`SplitItem.asIGo`). Allowed for a live task with no events and no live subtasks that is not open already; it sets `split_as_i_go = open`. Today's plan row for the task stays and now reads "next part".
+*   **Mark finished** sets `done`. A finished task with no parts is an ordinary unread task, so while there are no parts the menu item reads **Stop splitting**, and the task may be switched again.
 *   **Exam files** carry `split_as_i_go` on the node (optional field, format version unchanged). An older app ignores it, and the task imports as an ordinary task.
 
 ### 11. Logging
@@ -1070,7 +1073,7 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | ExamPackage | Round trip in both modes; remapping of references, `undoes_event_id` and `batch_id`; per-subject ID decision (existing subject linked and skipped; clean subject keeps IDs; clashing subject copied); every `validate` rule; newer format version; privacy fields dropped when notes are off; "add to existing" moves `sort_order` and never targets the Inbox; first free name; Copy as new attempt never merges; `item_state` after import equals the source phone's state |
 | Archive and remove | Shared subjects survive; unshared subjects and their data (including sessions) are removed; nothing is deleted if the export or the read-back check fails; blocked by an open session or a missing backup folder; `last_used_*` cleared |
 | Widgets | Today, Grade sheet, Finish sheet, Library label, Share capture sheet, Import screen |
-| Split as I go (D17) | `nextPartTitle` cases; planning includes an open task with parts; studying a part moves the plan row, sets the base time and keeps the task free of events; the last part and Mark finished; the writer's guard; the exam file field; the v1 → v2 migration test; widget tests of the Add switch and the Finish sheet's part field |
+| Split as I go (D17) | `nextPartTitle` cases; planning includes an open task with parts; studying a part moves the plan row, sets the base time and keeps the task free of events; the last part and Mark finished; the writer's guard; the exam file field; the v1 → v2 migration test; widget tests of the Add switch and the Finish sheet's part field; switching an added task, refused once it is studied or has subtasks |
 | Today sections (D16) | `todayLists`: rows below the line in planner and sort order, Coming up grouping at days 1, 7, 8, 14 and 15, done items leaving due and unread; widget tests of the header, the line, "Show all", the default and saved open sections, and a finished item moving to Coming up |
 | Organising (D15) | Move rules for each kind, the history rule and the copied source; delete only this (subtasks become Inbox tasks, a topic's tasks stay whole) and delete everything; Undo puts every row back; subject create with exams, rename, and delete keeping or dropping items, with the Inbox protected; widget tests of "+ New subject…", the Delete choices with Undo, Move… and the subject menu |
 | Device | Emulator integration tests on API 26 and API 36: session start → finish, backup → restore. Kill-and-relaunch is a manual release check |

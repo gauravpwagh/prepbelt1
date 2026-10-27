@@ -24,6 +24,25 @@ class SplitItem {
         canSplit(await _db.eventsDao.countFor(taskId));
   }
 
+  /// Whether [taskId] may become a task split as you go (design §10b): it
+  /// may be split, is not split as you go already and has no subtasks.
+  Future<bool> asIGoAllowed(String taskId) async {
+    if (!await allowed(taskId)) return false;
+    final task = (await _db.nodesDao.byId(taskId))!;
+    return task.splitAsIGo != SplitAsIGo.open &&
+        (await _db.nodesDao.children(taskId)).isEmpty;
+  }
+
+  /// Turns an added task into one split as you go (design §10b).
+  Future<void> asIGo(String taskId) => _db.transaction(() async {
+        if (!await asIGoAllowed(taskId)) {
+          throw StateError('Only a task with no review history and no subtasks '
+              'can be split as you go.');
+        }
+        await _db.nodesDao.updateNode(
+            taskId, const StudyNodesCompanion(splitAsIGo: Value(SplitAsIGo.open)));
+      });
+
   Future<List<String>> call(String taskId, SplitSpec spec) =>
       _db.transaction(() async {
         if (!await allowed(taskId)) {

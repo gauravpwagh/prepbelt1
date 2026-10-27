@@ -21,7 +21,7 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 
 ## Status
 
-Milestones M1–M8 and M10–M12 are implemented; M9 (iOS) is planned. Local checks: `flutter analyze` clean, 151 `prep_core` tests and 112 app tests pass, the coverage gate passes (application 90.7%), `check_imports` passes. CI on `main` is green.
+Milestones M1–M8 and M10–M12 are implemented; M9 (iOS) is planned. Local checks: `flutter analyze` clean, 151 `prep_core` tests and 116 app tests pass, the coverage gate passes (application 90.8%), `check_imports` passes. CI on `main` is green.
 
 | Milestone | State |
 | --- | --- |
@@ -37,7 +37,7 @@ Milestones M1–M8 and M10–M12 are implemented; M9 (iOS) is planned. Local che
 | M9 iOS | Planned (plan items 112–119); waits for the Android internal test and Open Questions 1–4. |
 | M10 organising items | Done: move, delete only this / everything with Undo, subject rename and delete, "+ New subject…" and "+ New topic…" in place (plan items 120–126). |
 | M11 Today sections | Done: Due now, Up next and Coming up, collapsible, with the daily minutes as a line and open sections kept for the day (plan items 127–132). |
-| M12 split as I go | Done: schema v2 (`study_nodes.split_as_i_go`), parts named on Finish and Mark studied, Mark finished (plan items 133–138). |
+| M12 split as I go | Done: schema v2 (`study_nodes.split_as_i_go`), parts named on Finish and Mark studied, Mark finished, an added task switched from its Split screen (plan items 133–139). |
 
 ## Releasing
 
