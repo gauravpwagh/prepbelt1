@@ -36,4 +36,4 @@ PrepBelt is intended for adults preparing for competitive exams. It is not direc
 
 ## Changes and contact
 
-If this policy changes, the new version will be posted at this address with a new effective date. Questions: [contact email].
+If this policy changes, the new version will be posted at this address with a new effective date. Questions: vijwagh31@gmail.com.
