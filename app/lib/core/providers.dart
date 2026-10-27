@@ -26,6 +26,7 @@ import '../application/restore_backup.dart';
 import '../application/run_backup.dart';
 import '../application/save_exam.dart';
 import '../application/source_folders.dart';
+import '../application/share_logs.dart';
 import '../application/split_item.dart';
 import '../application/start_session.dart';
 import '../application/undo_latest.dart';
@@ -40,6 +41,7 @@ import '../platform/clock.dart';
 import '../platform/device_status.dart';
 import '../platform/file_sharer.dart';
 import '../platform/folder_access.dart';
+import '../platform/logging.dart';
 import '../platform/notification_port.dart';
 import '../platform/share_receiver.dart';
 import '../platform/source_opener.dart';
@@ -165,7 +167,7 @@ class OnboardingDone extends Notifier<bool> {
 // ---- platform ports ----
 
 final notificationPortProvider =
-    Provider<NotificationPort>((ref) => LocalNotificationPort());
+    Provider<NotificationPort>((ref) => LocalNotificationPort(ref.watch(clockProvider)));
 
 final deviceStatusProvider = Provider<DeviceStatus>((ref) => const AndroidDeviceStatus());
 
@@ -302,3 +304,20 @@ final archiveAndRemoveProvider = Provider<ArchiveAndRemove>((ref) => ArchiveAndR
     ref.watch(studyWriterProvider),
     ref.watch(buildTodayPlanProvider),
     cacheDir: ref.watch(cacheDirProvider)));
+
+// ---- logging and diagnostics ----
+
+/// Set in bootstrap once the log directory is known.
+final logSinkProvider = Provider<FileLogSink>(
+    (ref) => throw UnimplementedError('logSinkProvider is set in bootstrap'));
+
+final shareLogsProvider = Provider<ShareLogs>((ref) => ShareLogs(
+      ref.watch(logSinkProvider),
+      ref.watch(deviceStatusProvider),
+      ref.watch(notificationPortProvider),
+      ref.watch(fileSharerProvider),
+      appVersion: appVersion,
+      tzId: ref.watch(tzIdProvider),
+      cacheDir: ref.watch(cacheDirProvider),
+      now: _now(ref),
+    ));

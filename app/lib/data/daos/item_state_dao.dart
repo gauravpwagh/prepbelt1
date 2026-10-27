@@ -32,6 +32,10 @@ class ItemStateDao extends DatabaseAccessor<AppDatabase>
   Stream<ItemState> watch(String nodeId) =>
       _of(nodeId).watchSingleOrNull().map(_toState);
 
+  /// Every stored state, keyed by node ID (nodes without a row are Unread).
+  Future<Map<String, ItemState>> all() async =>
+      {for (final r in await select(itemStates).get()) r.nodeId: _toState(r)};
+
   /// The state of every live reviewable node, keyed by node ID.
   Future<Map<String, ItemState>> allReviewable() async {
     final rows = await customSelect(

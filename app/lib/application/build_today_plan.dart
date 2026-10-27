@@ -44,9 +44,8 @@ class BuildTodayPlan {
   /// sort key.
   Future<PlanInput> input(LocalDate today,
       {List<DoneRow> done = const []}) async {
-    final nodes = await _db.nodesDao.plannable();
-    final states = await _db.itemStateDao.allReviewable();
-    final keys = await _db.nodesDao.sortKeys();
+    final (:nodes, :keys) = await _db.nodesDao.planning();
+    final states = await _db.itemStateDao.all();
     final refs = await _db.examsDao.examRefsBySubject();
 
     final rescheduled = <String>{};

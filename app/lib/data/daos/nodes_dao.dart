@@ -121,33 +121,35 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
   }
 
   /// Live reviewable nodes outside the Inbox: the planner's candidates.
-  Future<List<NodeRow>> plannable() => customSelect(
-        'SELECT n.* FROM study_nodes n JOIN subjects s ON s.id = n.subject_id'
-        ' WHERE s.is_inbox = 0 AND $reviewableSql',
-        readsFrom: {studyNodes, subjects},
-      ).asyncMap(studyNodes.mapFromRow).get();
+  Future<List<NodeRow>> plannable() async => (await planning()).nodes;
 
   /// [SortKey]s for every live reviewable node, keyed by node ID.
-  Future<Map<String, SortKey>> sortKeys() async {
-    final subjectOrder = {
-      for (final s in await select(subjects).get()) s.id: s.sortOrder,
-    };
+  Future<Map<String, SortKey>> sortKeys() async => (await planning(includeInbox: true)).keys;
+
+  /// One pass over live nodes and subjects for the planner: the reviewable
+  /// nodes (outside the Inbox unless [includeInbox]) and their sort keys.
+  Future<({List<NodeRow> nodes, Map<String, SortKey> keys})> planning(
+      {bool includeInbox = false}) async {
+    final subjectRows = await select(subjects).get();
+    final subjectOrder = {for (final s in subjectRows) s.id: s.sortOrder};
+    final inbox = {for (final s in subjectRows) if (s.isInbox) s.id};
     final live = {
-      for (final n in await (select(studyNodes)
-            ..where((n) => n.deletedAt.isNull()))
-          .get())
+      for (final n in await (select(studyNodes)..where((n) => n.deletedAt.isNull())).get())
         n.id: n,
     };
     final hasChildren = {
       for (final n in live.values)
         if (n.parentId != null) n.parentId!,
     };
+    final nodes = <NodeRow>[];
     final keys = <String, SortKey>{};
     for (final n in live.values) {
       if (n.kind == NodeKind.topic || hasChildren.contains(n.id)) continue;
+      if (!includeInbox && inbox.contains(n.subjectId)) continue;
       final task = n.kind == NodeKind.subtask ? live[n.parentId] : n;
       if (task == null) continue; // A subtask whose task is deleted.
       final topic = task.parentId == null ? null : live[task.parentId];
+      nodes.add(n);
       keys[n.id] = SortKey(
         subjectOrder: subjectOrder[n.subjectId] ?? 0,
         topicOrder: topic?.sortOrder ?? 0,
@@ -157,6 +159,6 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
         id: n.id,
       );
     }
-    return keys;
+    return (nodes: nodes, keys: keys);
   }
 }

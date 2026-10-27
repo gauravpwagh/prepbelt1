@@ -230,4 +230,16 @@ void main() {
     expect(await f.db.nodesDao.roots('sub1'), hasLength(4));
     await tearDownApp(tester);
   });
+
+  testWidgets('Diagnostics shows permission, battery, integrity and shares logs', (tester) async {
+    await pumpApp(tester);
+    c.read(routerProvider).push('/diagnostics');
+    await tester.pumpAndSettle();
+    expect(find.text('Allowed'), findsOneWidget);
+    expect(find.text('On — reminders may be delayed'), findsOneWidget);
+    expect(find.text('Integrity OK'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('diag-test')));
+    await tester.pumpAndSettle();
+    await tearDownApp(tester);
+  });
 }

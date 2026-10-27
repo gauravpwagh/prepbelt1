@@ -2,6 +2,7 @@
 // the app never asks for exact alarms.
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logging/logging.dart';
+import 'package:prep_core/prep_core.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 final _log = Logger('notifications');
@@ -40,9 +41,10 @@ abstract final class NotificationIds {
 }
 
 class LocalNotificationPort implements NotificationPort {
-  LocalNotificationPort([FlutterLocalNotificationsPlugin? plugin])
+  LocalNotificationPort(this._clock, [FlutterLocalNotificationsPlugin? plugin])
       : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
+  final Clock _clock;
   final FlutterLocalNotificationsPlugin _plugin;
 
   static const _reminders = AndroidNotificationDetails(
@@ -110,7 +112,7 @@ class LocalNotificationPort implements NotificationPort {
 
   @override
   Future<void> scheduleDailyReminder(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
+    final now = tz.TZDateTime.from(_clock.nowUtc(), tz.local);
     var at = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
     if (!at.isAfter(now)) at = at.add(const Duration(days: 1));
     _log.info('Daily reminder scheduled for $at');

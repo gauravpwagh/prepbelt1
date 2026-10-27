@@ -74,7 +74,7 @@ final libraryViewProvider = StreamProvider.autoDispose<LibraryView>((ref) {
           : await db.subjectsDao.forExam(filter);
       final inbox = await db.subjectsDao.inbox();
       final nodes = await db.nodesDao.allLive();
-      final states = await db.itemStateDao.allReviewable();
+      final states = await db.itemStateDao.all();
 
       final byParent = <String?, List<NodeRow>>{};
       for (final n in nodes) {

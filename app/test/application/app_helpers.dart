@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prepbelt/app.dart';
 import 'package:prepbelt/core/providers.dart';
+import 'package:prepbelt/platform/logging.dart';
 
 import '../data/helpers.dart';
 import '../fakes.dart';
@@ -17,8 +20,12 @@ ProviderContainer containerFor(
   FakeDeviceStatus? device,
   FakeFolderAccess? folders,
   FakeShareReceiver? shares,
+  FakeSharer? sharer,
 }) {
   final c = ProviderContainer(overrides: [
+    logSinkProvider.overrideWithValue(
+        FileLogSink(Directory.systemTemp.createTempSync('prepbelt_logs'), now: f.clock.nowUtc)),
+    fileSharerProvider.overrideWithValue(sharer ?? FakeSharer()),
     folderAccessProvider.overrideWithValue(folders ?? FakeFolderAccess()),
     shareReceiverProvider.overrideWithValue(shares ?? FakeShareReceiver()),
     notificationPortProvider.overrideWithValue(notifications ?? FakeNotifications()),

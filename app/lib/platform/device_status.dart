@@ -1,5 +1,6 @@
 // Battery optimisation status and device facts (plan item 69).
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 
 abstract interface class DeviceStatus {
@@ -9,6 +10,9 @@ abstract interface class DeviceStatus {
   /// Opens `Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`, where the
   /// user finds PrepBelt themselves.
   Future<void> openBatterySettings();
+
+  /// "Xiaomi Redmi Note 12 · Android 14 (API 34)".
+  Future<String> deviceSummary();
 }
 
 /// `prepbelt/device`, the app's one native channel (MainActivity.kt).
@@ -25,6 +29,16 @@ class AndroidDeviceStatus implements DeviceStatus {
       return null;
     } on MissingPluginException {
       return null;
+    }
+  }
+
+  @override
+  Future<String> deviceSummary() async {
+    try {
+      final a = await DeviceInfoPlugin().androidInfo;
+      return '${a.manufacturer} ${a.model} · Android ${a.version.release} (API ${a.version.sdkInt})';
+    } catch (_) {
+      return 'Unknown device';
     }
   }
 

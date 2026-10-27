@@ -10,12 +10,12 @@ An offline Android app (Flutter) for competitive-exam preparation. It tracks stu
 | Milestone | What | State |
 | --- | --- | --- |
 | M1 | `packages/prep_core`: belts, exam cap, planner, catch-up, share classifier, exam file format, with tests | Done: analyzer clean, tests and coverage gate pass, CI green |
-| M2 | Data layer (Drift): schema v1, DAOs, `StudyWriter`, integrity check | Done (pending CI) |
-| M3 | Core screens | Not started |
-| M4 | Timer and notifications | Not started |
-| M5 | Folder access, sources, Share to app | Not started |
-| M6 / M6b | Backups, restore, catch-up UI; exam export/import | Not started |
-| M7 | Diagnostics, logging, performance | Not started |
+| M2 | Data layer (Drift): schema v1, DAOs, `StudyWriter`, integrity check | Done |
+| M3 | Core screens | Done |
+| M4 | Timer and notifications | Done |
+| M5 | Folder access, sources, Share to app | Done |
+| M6 / M6b | Backups, restore, catch-up UI; exam export/import | Done |
+| M7 | Diagnostics, logging, performance | Done (device performance and integration runs pending) |
 
 Local development currently uses Flutter 3.41.6; CI pins 3.47.8. On 3.41.6 the newest compatible Drift is 2.34.0, so `drift` and `drift_dev` are pinned to it in `app/pubspec.yaml`.
 

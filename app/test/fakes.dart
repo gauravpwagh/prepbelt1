@@ -5,6 +5,7 @@ import 'package:prepbelt/data/db/app_database.dart';
 import 'package:prepbelt/platform/folder_access.dart';
 import 'package:prepbelt/platform/share_receiver.dart';
 import 'package:prepbelt/platform/device_status.dart';
+import 'package:prepbelt/platform/file_sharer.dart';
 import 'package:prepbelt/platform/notification_port.dart';
 import 'package:prepbelt/platform/source_opener.dart';
 
@@ -50,6 +51,14 @@ class FakeDeviceStatus implements DeviceStatus {
   Future<bool?> batteryOptimizationIgnored() async => ignored;
   @override
   Future<void> openBatterySettings() async => opened++;
+  @override
+  Future<String> deviceSummary() async => 'Test phone · Android 14 (API 34)';
+}
+
+class FakeSharer implements FileSharer {
+  final shared = <String>[];
+  @override
+  Future<void> shareFile(File file, {String? subject}) async => shared.add(file.path);
 }
 
 class FakeOpener implements SourceOpener {

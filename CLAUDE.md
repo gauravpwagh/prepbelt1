@@ -21,34 +21,32 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 
 ## Status
 
+All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 82 app tests pass, the coverage gate passes (application 89.8%), `check_imports` passes. CI on `main` is green.
+
 | Milestone | State |
 | --- | --- |
-| M1 `packages/prep_core` (pure Dart rules and tests) | **Verified locally** (Flutter 3.41.6 / Dart 3.11.4): `dart analyze --fatal-infos` clean, 145 tests pass, coverage gate passes, `tool/sim/planner_check.py` exits 0. CI green; `flutter-version` pinned to 3.47.8. |
-| M2 data layer (`app/lib/data`) | Done locally: schema v1 with CHECKs and indexes, nine DAOs, `StudyWriter`, integrity check, `drift_schema_v1.json`; 25 app tests pass. Backup/restore (plan 59–61) and exam export/import (62–63) are deferred to M6/M6b per the design's milestone table. |
-| M3–M7 (UI, platform) | Not started |
+| M1 `prep_core` | Done. CI pins `flutter-version` 3.47.8. |
+| M2 data layer | Done: schema v1, DAOs, `StudyWriter`, integrity check, `drift_schema_v1.json`. |
+| M3 core screens | Done: Today, Library, Item, Add/Split, Grade, Exams, onboarding. |
+| M4 timer and notifications | Done: Start/Finish, ongoing and "Still reading?" notifications, reconcile, battery explainer. |
+| M5 sources and sharing | Done: SAF folders, PDF browser, Open/Re-link, Share to app. |
+| M6 backups and catch-up | Done: routine/safety/pre-migration backups, restore, catch-up card. |
+| M6b exam files | Done: export, import with clash choices, copy as new attempt, archive and remove. |
+| M7 diagnostics | Done: rotating logs, crash.log, Share logs, Diagnostics, 5k-item seed. |
 
-## First tasks, in order
+## Not yet verified (needs a device)
 
-1.  **Resolve and check.** Run:
+*   **Integration tests** (`app/integration_test/`) need API 26 and API 36 emulators: `flutter test integration_test`. Only the export/import one also runs on the host.
+*   **Performance** (design NFR) must be measured in a profile build on a 4 GB phone with `test/perf/seed_5k.dart`. On the development PC (debug, in-memory) the plan input and build takes about 90 ms and the Library queries about 55 ms.
+*   **Manual release checks** in the implementation plan's Verification Plan (Xiaomi/Oppo/Vivo, kill during a session, restore on a second device, sharing from real apps).
+*   Local APK builds need the Android SDK licenses accepted (`flutter doctor --android-licenses`); CI builds the release APK and checks there is no INTERNET permission.
 
-    ```sh
-    flutter pub get
-    dart run tool/check_imports.dart
-    cd packages/prep_core
-    dart analyze --fatal-infos
-    dart test
-    ```
+## Conventions added during implementation
 
-    Fix every analyzer issue and every failing test.
-    *   When a test's expected value disagrees with the rule in the design doc, the design doc wins.
-    *   If the design itself looks wrong, ask the author.
-2.  **Coverage.** Run `dart pub global run coverage:test_with_coverage` in `packages/prep_core`, then `dart run tool/coverage_gate.dart packages/prep_core/coverage/lcov.info` from the repository root. Add tests until the gate passes.
-3.  **Push and pin.**
-    *   Push to `https://github.com/gauravpwagh/prepbelt.git` (branch `main`).
-    *   Once CI is green, pin `flutter-version` in `.github/workflows/ci.yaml` to the stable release that passed.
-4.  **Start M2, the data layer**, following plan items 36–64 and design §2 and §8. Before you start:
-    *   run `flutter create --org io.github.gauravpwagh --project-name prepbelt --platforms android app`;
-    *   add `app` to the `workspace:` list in the root `pubspec.yaml`.
+*   Features never import each other. Sheets or widgets that one feature shows inside another go through `core/sheets.dart` (`AppSheets`) and `core/slots.dart`, which `app.dart` fills. Shared flows that only need providers live in `core/widgets/` (folder chooser, restore flow).
+*   Only `platform/clock.dart` reads the system time; the log sink and the notification port take a clock.
+*   `appDatabaseProvider` owns the database (closed on dispose). Restore closes it, swaps the file and invalidates the provider; `restoreBackupFor(container)` builds the restore use case from the root container for that reason.
+*   Local Flutter is 3.41.6 while CI uses 3.47.8. On 3.41.6 the newest compatible Drift is 2.34.0, so `drift` and `drift_dev` are pinned exactly.
 
 ## Rules that must not be broken
 

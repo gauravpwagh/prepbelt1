@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'app.dart';
 import 'core/providers.dart';
 import 'data/backup/pre_migration_backup.dart';
+import 'platform/clock.dart';
+import 'platform/logging.dart';
 import 'router.dart';
 
 final _log = Logger('bootstrap');
@@ -19,6 +22,13 @@ final _log = Logger('bootstrap');
 /// Returns the root container with the opened database.
 Future<ProviderContainer> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  const clock = SystemClock();
+  final sink = FileLogSink(
+      Directory(p.join((await getApplicationSupportDirectory()).path, 'logs')),
+      now: clock.nowUtc);
+  initLogging(sink);
+  installErrorHooks(sink);
 
   tzdata.initializeTimeZones();
   var tzId = 'UTC';
@@ -32,6 +42,7 @@ Future<ProviderContainer> bootstrap() async {
   }
 
   final container = ProviderContainer(overrides: [
+    logSinkProvider.overrideWithValue(sink),
     tzIdProvider.overrideWithValue(tzId),
     ...appOverrides,
   ]);
