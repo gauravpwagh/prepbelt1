@@ -367,8 +367,8 @@ final class ExamPackage {
     T? opt<T>(Map<String, Object?> m, String k) {
       final v = m[k];
       if (v == null) return null;
-      if (v is! T) throw FormatException('Wrong type for "$k"');
-      return v;
+      if (v is T) return v as T;
+      throw FormatException('Wrong type for "$k"');
     }
 
     List<Map<String, Object?>> list(String k) => [
@@ -443,14 +443,14 @@ final class ExamPackage {
             tzId: req<String>(e, 'tz_id'),
             grade: opt<String>(e, 'grade') == null
                 ? null
-                : key(Grade.values, (g) => g.key, req<String>(e, 'grade')),
+                : key<Grade>(Grade.values, (g) => g.key, req<String>(e, 'grade')),
             minutes: opt<int>(e, 'minutes'),
             beltBefore: opt<String>(e, 'belt_before') == null
                 ? null
-                : key(Belt.values, (b) => b.key, req<String>(e, 'belt_before')),
+                : key<Belt>(Belt.values, (b) => b.key, req<String>(e, 'belt_before')),
             beltAfter: opt<String>(e, 'belt_after') == null
                 ? null
-                : key(Belt.values, (b) => b.key, req<String>(e, 'belt_after')),
+                : key<Belt>(Belt.values, (b) => b.key, req<String>(e, 'belt_after')),
             intervalDays: opt<int>(e, 'interval_days'),
             ladderDueAfter: opt<String>(e, 'ladder_due_after') == null
                 ? null

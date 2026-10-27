@@ -271,6 +271,28 @@ void main() {
     expect(() => _ev('z', 'st1', 'bogus', 0).toStudyEvent(), throwsFormatException);
   });
 
+  test('copyWith with no arguments keeps IDs', () {
+    final p = sample();
+    expect(p.sources.first.copyWith().nodeId, 'k1');
+    final e = p.events.first.copyWith();
+    expect([e.id, e.nodeId], ['e1', 'st1']);
+  });
+
+  test('decode rejects wrongly typed optional fields and unknown keys', () {
+    final j = sample().toJson();
+    final events = [for (final e in j['events'] as List) Map<String, Object?>.from(e as Map)];
+    Map<String, Object?> withEvent0(Map<String, Object?> change) => {
+          ...j,
+          'events': [
+            {...events.first, ...change},
+            ...events.skip(1),
+          ],
+        };
+    expect(() => ExamPackage.fromJson(withEvent0({'minutes': 'ten'})), throwsFormatException);
+    expect(() => ExamPackage.fromJson(withEvent0({'belt_after': 'purple'})),
+        throwsFormatException);
+  });
+
   test('firstFreeName', () {
     expect(firstFreeName('Polity', ['History']), 'Polity');
     expect(firstFreeName('Polity', ['polity', 'Polity 2']), 'Polity 3');

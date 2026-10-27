@@ -23,7 +23,7 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 
 | Milestone | State |
 | --- | --- |
-| M1 `packages/prep_core` (pure Dart rules and tests) | **Written but never run.** It was authored without a Dart SDK. A line-by-line desk-check found and fixed one compile error. The planner maths was cross-checked in Python (`tool/sim/planner_check.py`). |
+| M1 `packages/prep_core` (pure Dart rules and tests) | **Verified locally** (Flutter 3.41.6 / Dart 3.11.4): `dart analyze --fatal-infos` clean, 145 tests pass, coverage gate passes, `tool/sim/planner_check.py` exits 0. CI not yet confirmed green, so `flutter-version` is not pinned. |
 | M2–M7 (app, data, UI, platform) | Not started |
 
 ## First tasks, in order

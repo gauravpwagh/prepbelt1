@@ -22,12 +22,12 @@ final class ItemState {
   final int reviewCount;
 
   @override
-  bool operator ==(Object o) =>
-      o is ItemState &&
-      o.belt == belt &&
-      o.ladderDue == ladderDue &&
-      o.lastReviewDate == lastReviewDate &&
-      o.reviewCount == reviewCount;
+  bool operator ==(Object other) =>
+      other is ItemState &&
+      other.belt == belt &&
+      other.ladderDue == ladderDue &&
+      other.lastReviewDate == lastReviewDate &&
+      other.reviewCount == reviewCount;
 
   @override
   int get hashCode => Object.hash(belt, ladderDue, lastReviewDate, reviewCount);

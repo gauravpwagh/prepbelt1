@@ -30,8 +30,8 @@ final class SplitPart {
   final String? positionText;
 
   @override
-  bool operator ==(Object o) =>
-      o is SplitPart && o.title == title && o.positionText == positionText;
+  bool operator ==(Object other) =>
+      other is SplitPart && other.title == title && other.positionText == positionText;
 
   @override
   int get hashCode => Object.hash(title, positionText);

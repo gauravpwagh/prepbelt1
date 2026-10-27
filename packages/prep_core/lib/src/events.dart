@@ -25,13 +25,13 @@ final class Outcome {
   final String explanation;
 
   @override
-  bool operator ==(Object o) =>
-      o is Outcome &&
-      o.beltBefore == beltBefore &&
-      o.beltAfter == beltAfter &&
-      o.intervalDays == intervalDays &&
-      o.ladderDue == ladderDue &&
-      o.explanation == explanation;
+  bool operator ==(Object other) =>
+      other is Outcome &&
+      other.beltBefore == beltBefore &&
+      other.beltAfter == beltAfter &&
+      other.intervalDays == intervalDays &&
+      other.ladderDue == ladderDue &&
+      other.explanation == explanation;
 
   @override
   int get hashCode =>

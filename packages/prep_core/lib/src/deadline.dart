@@ -30,8 +30,8 @@ final class Deadline {
   final LocalDate date;
 
   @override
-  bool operator ==(Object o) =>
-      o is Deadline && o.examId == examId && o.date == date;
+  bool operator ==(Object other) =>
+      other is Deadline && other.examId == examId && other.date == date;
 
   @override
   int get hashCode => Object.hash(examId, date);

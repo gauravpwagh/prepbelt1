@@ -90,7 +90,7 @@ final class SortKey implements Comparable<SortKey> {
   }
 
   @override
-  bool operator ==(Object o) => o is SortKey && compareTo(o) == 0;
+  bool operator ==(Object other) => other is SortKey && compareTo(other) == 0;
 
   @override
   int get hashCode => Object.hash(
