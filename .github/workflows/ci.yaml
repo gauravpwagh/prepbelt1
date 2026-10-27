@@ -5,8 +5,8 @@ on:
     branches: [main]
   pull_request:
 
-# Pin flutter-version to the exact stable release used on the first green run,
-# then bump it deliberately (plan item 5).
+# flutter-version is pinned to the stable release of the first green run
+# (2026-10-27); bump it deliberately (plan item 5).
 
 jobs:
   build:
@@ -22,6 +22,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.8
 
       - name: Resolve workspace
         run: flutter pub get
