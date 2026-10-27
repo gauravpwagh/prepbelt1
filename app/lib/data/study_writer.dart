@@ -192,6 +192,10 @@ class StudyWriter {
     if (!isReviewable(node.kind, children)) {
       throw StateError('Item $nodeId is not reviewable.');
     }
+    // Its history goes on its parts (design §10b).
+    if (node.splitAsIGo == SplitAsIGo.open) {
+      throw StateError('Item $nodeId is split as you go: study it as a part.');
+    }
   }
 
   Future<Undo> _undo(StudyEvent target, List<StudyEvent> events, DateTime now,

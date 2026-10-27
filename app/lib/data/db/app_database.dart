@@ -13,6 +13,7 @@ import '../daos/sessions_dao.dart';
 import '../daos/settings_dao.dart';
 import '../daos/sources_dao.dart';
 import '../daos/subjects_dao.dart';
+import 'app_database.steps.dart';
 import 'converters.dart';
 import 'db_file.dart';
 import 'tables.dart';
@@ -65,7 +66,7 @@ class AppDatabase extends _$AppDatabase {
     await super.close();
   }
 
-  static const currentSchema = 1;
+  static const currentSchema = 2;
 
   @override
   int get schemaVersion => currentSchema;
@@ -73,12 +74,14 @@ class AppDatabase extends _$AppDatabase {
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
-        onUpgrade: (m, from, to) async {
-          // Schema v1 has no upgrades yet. Each new version adds a
-          // `stepByStep` step from `app_database.steps.dart`; there is no
-          // destructive fallback.
-          throw StateError('No migration from schema $from to $to');
-        },
+        // Each version adds a `stepByStep` step from
+        // `app_database.steps.dart`; there is no destructive fallback.
+        onUpgrade: stepByStep(
+          // v2: tasks split as you go (design D17).
+          from1To2: (m, schema) async {
+            await m.addColumn(schema.studyNodes, schema.studyNodes.splitAsIGo);
+          },
+        ),
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
           await customStatement('PRAGMA journal_mode = WAL');

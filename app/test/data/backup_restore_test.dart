@@ -81,17 +81,17 @@ void main() {
       final s = service(db, FakeFolderAccess());
       expect(await s.isDue(), isTrue);
       final r = await s.runRoutine();
-      expect(r.name, 'prepbelt-20260301-1130-s1.db');
+      expect(r.name, 'prepbelt-20260301-1130-s2.db');
       expect(r.destination, BackupDestination.private);
       final names = backups.listSync().map((f) => p.basename(f.path)).toList()..sort();
       expect(names, [
         'prepbelt-20250102-0000-s1.db',
         'prepbelt-20250103-0000-s1.db',
-        'prepbelt-20260301-1130-s1.db',
+        'prepbelt-20260301-1130-s2.db',
         'prepbelt-safety-20240101-0000-s1.db',
       ]);
       final meta = (await db.select(db.backupMeta).get()).single;
-      expect([meta.formatVersion, meta.schemaVersion, meta.appVersion], [1, 1, '0.1.0']);
+      expect([meta.formatVersion, meta.schemaVersion, meta.appVersion], [1, 2, '0.1.0']);
       expect(await db.settingsDao.lastBackupAtUtc(), t0);
       expect(await s.isDue(), isFalse);
       expect(cache.listSync(), isEmpty);
@@ -207,7 +207,8 @@ void main() {
         ..close();
 
       final local = DateTime(2026, 3, 1, 11, 30);
-      expect(PreMigrationBackup.runIfNeeded(db, cacheDir: cache, localNow: local), isNull);
+      expect(PreMigrationBackup.runIfNeeded(db, cacheDir: cache, localNow: local, currentSchema: 1),
+          isNull);
       final copy = PreMigrationBackup.runIfNeeded(db,
           cacheDir: cache, localNow: local, currentSchema: 2)!;
       expect(p.basename(copy.file.path), 'prepbelt-premigration-20260301-1130-s1.db');

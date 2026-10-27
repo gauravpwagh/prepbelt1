@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
+import 'as_i_go.dart';
 import 'belt.dart';
 import 'events.dart';
 import 'grade.dart';
@@ -71,6 +72,7 @@ final class PkgNode {
     this.baseMinutes,
     required this.sortOrder,
     required this.createdAtUtcMs,
+    this.splitAsIGo,
   });
   final String id;
   final String subjectId;
@@ -83,6 +85,9 @@ final class PkgNode {
   final int sortOrder;
   final int createdAtUtcMs;
 
+  /// Optional (design §10b): older files and older apps leave it out.
+  final SplitAsIGo? splitAsIGo;
+
   PkgNode copyWith({String? id, String? subjectId, String? parentId, int? sortOrder}) => PkgNode(
         id: id ?? this.id,
         subjectId: subjectId ?? this.subjectId,
@@ -94,6 +99,7 @@ final class PkgNode {
         baseMinutes: baseMinutes,
         sortOrder: sortOrder ?? this.sortOrder,
         createdAtUtcMs: createdAtUtcMs,
+        splitAsIGo: splitAsIGo,
       );
 }
 
@@ -298,6 +304,7 @@ final class ExamPackage {
               'base_minutes': n.baseMinutes,
               'sort_order': n.sortOrder,
               'created_at_utc': n.createdAtUtcMs,
+              if (n.splitAsIGo != null) 'split_as_i_go': n.splitAsIGo!.key,
             }
         ],
         'sources': [
@@ -418,6 +425,9 @@ final class ExamPackage {
             baseMinutes: opt<int>(n, 'base_minutes'),
             sortOrder: req<int>(n, 'sort_order'),
             createdAtUtcMs: req<int>(n, 'created_at_utc'),
+            splitAsIGo: opt<String>(n, 'split_as_i_go') == null
+                ? null
+                : _parseKey(SplitAsIGo.fromKey, req<String>(n, 'split_as_i_go')),
           ),
       ],
       sources: [

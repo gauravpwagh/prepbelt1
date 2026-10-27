@@ -199,6 +199,7 @@ class ExamImporter {
             baseMinutes: Value(n.baseMinutes),
             sortOrder: n.sortOrder,
             createdAt: DateTime.fromMillisecondsSinceEpoch(n.createdAtUtcMs, isUtc: true),
+            splitAsIGo: Value(n.kind == NodeKind.task ? n.splitAsIGo : null),
           ));
         }
 

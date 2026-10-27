@@ -5,6 +5,7 @@
 *   **Amendment (2026-10-27):** iOS and tablet layouts brought into scope by the author (D13, D14, §13, M8, M9). The amendment's open questions are listed below; it has not had a Goldfish review yet.
 *   **Amendment (2026-10-27, second):** organising items brought into scope by the author (D15, §10a, CUJ 13, M10): move, delete that can keep children, subject rename and delete, and creating a subject or topic where it is picked. Not yet reviewed.
 *   **Amendment (2026-10-27, third):** Today in three collapsible sections, Due now, Up next and Coming up, with the daily minutes shown as a line instead of a filter (D16, §4, CUJ 14, M11). The planner's rules are unchanged. Not yet reviewed.
+*   **Amendment (2026-10-27, fourth):** splitting a task as you go (D17, §10b, CUJ 15, M12), with schema v2. Not yet reviewed.
 *   **Date:** 2026-10-26
 *   **Predecessor:** [concepts_brief.md](../../claude/concepts_brief.md)
 *   **Implementation plan:** [docs/plans/prepbelt_implementation.md](../plans/prepbelt_implementation.md)
@@ -43,6 +44,7 @@ Nothing leaves the phone except files the user creates on purpose: backups saved
 | **Topic** | An optional folder at the top of a subject. It only groups tasks: no belt, never planned. |
 | **Task / subtask** | One thing to study, with a kind and a base time. A subtask is a part of a task, for example a chapter after a split. The hierarchy is subject → topic (optional) → task → subtask. |
 | **Item / node** | Anything below a subject: a topic, task or subtask. |
+| **As I go** | A task split one part at a time (D17). Each study session names the part it covered, which becomes a subtask. Until its last part, the task shows on Today as "next part". |
 | **Reviewable item** | A task with no subtasks, or a subtask. Only these get belts and reviews. |
 | **Planned / Unread** | The same state: added but not yet studied. The belt is `unread`. |
 | **Base time** | Minutes to study an item the first time (10–50). Defaults: Reading 30, PYQ 40, Other 20. |
@@ -199,6 +201,13 @@ These are out of scope for version 1. Where later support needs data, that data 
     *   **Subjects.** Subjects can be renamed and deleted from the Library. Deleting one asks whether its items move to the Inbox or are deleted too.
     *   **Create in place.** The Add form offers "+ New subject…" and "+ New topic…" in its menus, and the Quick add and Share sheets offer a "New" chip. A new subject can be linked to exams there, or to none.
     *   **Exams are unchanged.** An exam is still removed only by Archive → Export and remove (§8a).
+*   **D17: A task can be split as you go** (author decision, 2026-10-27). Rules in §10b.
+    *   **Why.** Splitting needs the parts up front. Many sources (a long book, a PDF without chapters, a course) are only divided while they are read.
+    *   **Choice on Add.** The Add form's split section offers **Split as I go** next to the one-shot split. It is chosen when the task is added. A task already studied as one piece can't become "as I go", because its history can't be divided between parts.
+    *   **Each session names its part.** The Finish and Mark studied sheets ask "What did you cover?" with free text, pre-filled from the previous part ("Ch 3" → "Ch 4", "pp. 21–40" → "pp. 41–60"). Saving creates that part as a subtask, studied now, at Red.
+    *   **Base time** of a part is the minutes actually studied, kept within 10–50, so its reviews cost what the part took.
+    *   **The end.** "That was the last part" on those sheets, or **Mark finished** in the item menu, ends it. The task is then an ordinary task with subtasks.
+    *   **The task itself never has events** while it is open; its parts carry the history and belts.
 *   **D16: Today shows everything in three collapsible sections, and the daily minutes are a line, not a filter** (author decision, 2026-10-27). Rules in §4, "What Today shows".
     *   **Why.** An unread item that did not fit the day's minutes was missing from Today with no hint, and the student could not tell why.
     *   **Due now:** every review due today or overdue, in planner order. **Up next:** unread items in Library order. **Coming up:** reviews due after today, grouped by day.
@@ -424,6 +433,17 @@ These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
     *   After Finish, the first PDF leaves Up next and appears under Coming up → Tomorrow with a ✓, now Red; Tomorrow says "4 reviews · … (1 done today)".
     *   Closing Up next and reopening the app the same day keeps it closed. The next study day it is back to the default.
 
+### CUJ 15: Split a book while reading it
+
+*   **Given**: the user adds "Spectrum Modern History" with **Split as I go**.
+*   **When**: the user does the following:
+    1.  Starts "Spectrum Modern History · next part" from Up next, reads for 35 minutes and finishes. The Finish sheet asks "What did you cover?", pre-filled "Part 1"; they type "Ch 1–2" and save.
+    2.  The next day they study again; the field is pre-filled "Ch 3–4".
+    3.  After the last chapters they tick **That was the last part**.
+*   **Then**:
+    *   "Ch 1–2" is a subtask at Red with a base time of 35 minutes, due tomorrow; the task's belt bar counts it.
+    *   Until the last part, the task shows in Up next as "next part"; afterwards it does not, and its parts are reviewed like any subtasks.
+
 ### CUJ 12: Archive a finished exam to a file
 
 *   **Given**: "MPSC Prelims 2027" has passed.
@@ -489,7 +509,7 @@ The app has four layers, and dependencies point only downward. The scheduling an
 | `exams` | Exams | `id`, `name`, `exam_date`, `archived_at` (null), `created_at` |
 | `subjects` | Subjects, which can be shared between exams | `id`, `name`, `sort_order`, `is_inbox` (bool; exactly one row is true), `created_at` |
 | `exam_subjects` | Many-to-many link | `exam_id`, `subject_id` (composite PK) |
-| `study_nodes` | Topics, tasks and subtasks | `id`, `subject_id`, `parent_id` (null), `kind` (`topic`/`task`/`subtask`), `task_kind` (`reading`/`pyq`/`other`; null for topics), `title`, `position_text` (null), `base_minutes` (10–50; null for topics), `sort_order`, `created_at`, `deleted_at` (null) |
+| `study_nodes` | Topics, tasks and subtasks | `id`, `subject_id`, `parent_id` (null), `kind` (`topic`/`task`/`subtask`), `task_kind` (`reading`/`pyq`/`other`; null for topics), `title`, `position_text` (null), `base_minutes` (10–50; null for topics), `sort_order`, `created_at`, `deleted_at` (null), `split_as_i_go` (`open`/`done`; null unless the task is split as you go, D17; schema v2) |
 | `node_sources` | Optional source on a task; its subtasks inherit it | `node_id` (PK), `source_type` (`pdf`/`book`/`web`/`ai_chat`/`video`/`notes`/`lecture`/`app`/`other_device`), `url` (null), `folder_id` (null), `relative_path` (null), `file_name` (null), `file_size` (null), `location_note` (null), `excerpt` (null, ≤ 20,000 chars), `link_status` (`ok`/`needs_relink`/`not_linked`) |
 | `source_folders` | Folders the user granted access to | `id`, `tree_uri` (null = pick again, after a restore), `display_name`, `purpose` (`sources`/`backup`), `granted_at` |
 | `review_events` | **Append-only event log** | `id`, `node_id`, `event_type` (`first_study`/`review`/`reschedule`/`undo`), `at_utc`, `local_date`, `tz_id`, `grade` (null), `minutes` (null), `session_id` (null), `belt_before` (null), `belt_after` (null), `interval_days` (null), `ladder_due_after` (null), `explanation` (null), `undoes_event_id` (null), `batch_id` (null), `scheduler` (`ladder`), `scheduler_version` (1) |
@@ -1012,6 +1032,22 @@ This runs a structure-mode export and import in memory, with the new exam name a
 
 **No events are written** by any of these; `review_events` stays append-only.
 
+### 10b. Splitting as you go (D17)
+
+*   **Adding.** `AddItem` with `asIGo: true` stores the task with `split_as_i_go = open`. Only tasks can be "as I go", and a one-shot split is not applied with it.
+*   **Planning.** An open "as I go" task is a planner item of its own, whether or not it has parts yet: it is unread, its base time is the task's, and it sorts by the task's sort key. Today shows it as "{task} · next part". Finished parts are ordinary subtasks: they are reviewed on the ladder and roll up into the task's belt bar (D6).
+*   **Studying a part** (`MarkStudied` with a part). In one transaction:
+    1.  The part is added as the task's last subtask with the given title and `base_minutes = clamp(minutes, 10, 50)`. It inherits the task's source like any subtask.
+    2.  If today's plan has an open row for the task, the row is moved to the part; otherwise a done `first_read` row is added for the part (§4).
+    3.  `first_study` is written for the part, and that row is marked done.
+    4.  With "That was the last part", `split_as_i_go` becomes `done`.
+
+    The task can then show again below the line in Up next, so the student can go on to the next part the same day.
+*   **Pre-filled title** (`nextPartTitle`). From the previous part's title: a trailing range "a–b" becomes "(b+1)–(2b−a+1)"; otherwise the last number in the title goes up by one; a title without a number, or no part yet, gives "Part {n+1}".
+*   **Guards.** `StudyWriter` refuses a `first_study` on an open "as I go" task, so its history stays on the parts. Undo of a part's first study leaves the part as an unread subtask, which the student can delete.
+*   **Mark finished** sets `done`. A finished task with no parts is an ordinary unread task.
+*   **Exam files** carry `split_as_i_go` on the node (optional field, format version unchanged). An older app ignores it, and the task imports as an ordinary task.
+
 ### 11. Logging
 
 *   **Log files.** `package:logging` writes to a rotating file sink: 2 × 1 MB in app-private storage. It records scheduler decisions, plan builds, sessions, notification scheduling, backups, restores, migrations and errors.
@@ -1034,6 +1070,7 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | ExamPackage | Round trip in both modes; remapping of references, `undoes_event_id` and `batch_id`; per-subject ID decision (existing subject linked and skipped; clean subject keeps IDs; clashing subject copied); every `validate` rule; newer format version; privacy fields dropped when notes are off; "add to existing" moves `sort_order` and never targets the Inbox; first free name; Copy as new attempt never merges; `item_state` after import equals the source phone's state |
 | Archive and remove | Shared subjects survive; unshared subjects and their data (including sessions) are removed; nothing is deleted if the export or the read-back check fails; blocked by an open session or a missing backup folder; `last_used_*` cleared |
 | Widgets | Today, Grade sheet, Finish sheet, Library label, Share capture sheet, Import screen |
+| Split as I go (D17) | `nextPartTitle` cases; planning includes an open task with parts; studying a part moves the plan row, sets the base time and keeps the task free of events; the last part and Mark finished; the writer's guard; the exam file field; the v1 → v2 migration test; widget tests of the Add switch and the Finish sheet's part field |
 | Today sections (D16) | `todayLists`: rows below the line in planner and sort order, Coming up grouping at days 1, 7, 8, 14 and 15, done items leaving due and unread; widget tests of the header, the line, "Show all", the default and saved open sections, and a finished item moving to Coming up |
 | Organising (D15) | Move rules for each kind, the history rule and the copied source; delete only this (subtasks become Inbox tasks, a topic's tasks stay whole) and delete everything; Undo puts every row back; subject create with exams, rename, and delete keeping or dropping items, with the Inbox protected; widget tests of "+ New subject…", the Delete choices with Undo, Move… and the subject menu |
 | Device | Emulator integration tests on API 26 and API 36: session start → finish, backup → restore. Kill-and-relaunch is a manual release check |
@@ -1430,6 +1467,7 @@ Each entry records a rejected option and why it was rejected. Reopen one only if
 | M9 | iOS: project, Swift folder channel, Quick Look opener, Share Extension, notifications, privacy manifest, macOS CI (D13) | Every CUJ on iPhone and iPad, except the live timer outside the app |
 | M10 | Organising items: move, delete with orphans to the Inbox and Undo, subject rename and delete, subjects and topics created where they are picked (D15) | CUJ 13 |
 | M11 | Today in three sections: Due now, Up next, Coming up, with the line and saved open sections (D16) | CUJ 14 |
+| M12 | Split as I go: schema v2, part naming on Finish and Mark studied, Mark finished (D17) | CUJ 15 |
 
 The file-by-file plan, conventions and verification commands are in the [implementation plan](../plans/prepbelt_implementation.md).
 

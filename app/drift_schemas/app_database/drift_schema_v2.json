@@ -1,0 +1,1861 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": false
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "exams",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "exam_date",
+            "getter_name": "examDate",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "archived_at",
+            "getter_name": "archivedAt",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "subjects",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sort_order",
+            "getter_name": "sortOrder",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "is_inbox",
+            "getter_name": "isInbox",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"is_inbox\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"is_inbox\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "references": [
+        0,
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "exam_subjects",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "exam_id",
+            "getter_name": "examId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES exams (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES exams (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "exams",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "subject_id",
+            "getter_name": "subjectId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES subjects (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES subjects (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "subjects",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "exam_id",
+          "subject_id"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "references": [
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "study_nodes",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "subject_id",
+            "getter_name": "subjectId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES subjects (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES subjects (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "subjects",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "parent_id",
+            "getter_name": "parentId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_nodes (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_nodes (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_nodes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "kind",
+            "getter_name": "kind",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const NodeKindConverter()",
+              "dart_type_name": "NodeKind"
+            }
+          },
+          {
+            "name": "task_kind",
+            "getter_name": "taskKind",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const TaskKindConverter()",
+              "dart_type_name": "TaskKind"
+            }
+          },
+          {
+            "name": "title",
+            "getter_name": "title",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "position_text",
+            "getter_name": "positionText",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "base_minutes",
+            "getter_name": "baseMinutes",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sort_order",
+            "getter_name": "sortOrder",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          },
+          {
+            "name": "deleted_at",
+            "getter_name": "deletedAt",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          },
+          {
+            "name": "split_as_i_go",
+            "getter_name": "splitAsIGo",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "check": {
+                  "dart_expression": {
+                    "elements": [
+                      "const ",
+                      {
+                        "lexeme": "CustomExpression",
+                        "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+                      },
+                      "<",
+                      {
+                        "lexeme": "bool",
+                        "import_uri": "dart:core"
+                      },
+                      ">(\"split_as_i_go IN ('open', 'done')\")"
+                    ]
+                  }
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "const SplitAsIGoConverter()",
+              "dart_type_name": "SplitAsIGo"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (kind IN ('topic', 'task', 'subtask'))",
+          "CHECK (task_kind IS NULL OR task_kind IN ('reading', 'pyq', 'other'))",
+          "CHECK ((kind = 'topic' AND task_kind IS NULL AND base_minutes IS NULL) OR (kind <> 'topic' AND task_kind IS NOT NULL AND base_minutes BETWEEN 10 AND 50))"
+        ],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "source_folders",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tree_uri",
+            "getter_name": "treeUri",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "display_name",
+            "getter_name": "displayName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "purpose",
+            "getter_name": "purpose",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const FolderPurposeConverter()",
+              "dart_type_name": "FolderPurpose"
+            }
+          },
+          {
+            "name": "granted_at",
+            "getter_name": "grantedAt",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (purpose IN ('sources', 'backup'))"
+        ],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "references": [
+        3,
+        4
+      ],
+      "type": "table",
+      "data": {
+        "name": "node_sources",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "node_id",
+            "getter_name": "nodeId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_nodes (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_nodes (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_nodes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "source_type",
+            "getter_name": "sourceType",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const SourceTypeConverter()",
+              "dart_type_name": "SourceType"
+            }
+          },
+          {
+            "name": "url",
+            "getter_name": "url",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "folder_id",
+            "getter_name": "folderId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES source_folders (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES source_folders (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "source_folders",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "relative_path",
+            "getter_name": "relativePath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "file_name",
+            "getter_name": "fileName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "file_size",
+            "getter_name": "fileSize",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "location_note",
+            "getter_name": "locationNote",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "excerpt",
+            "getter_name": "excerpt",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "link_status",
+            "getter_name": "linkStatus",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LinkStatusConverter()",
+              "dart_type_name": "LinkStatus"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (source_type IN ('pdf', 'book', 'web', 'ai_chat', 'video', 'notes', 'lecture', 'app', 'other_device'))",
+          "CHECK (link_status IN ('ok', 'needs_relink', 'not_linked'))",
+          "CHECK (excerpt IS NULL OR length(excerpt) <= 20000)"
+        ],
+        "explicit_pk": [
+          "node_id"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "references": [
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "study_sessions",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "node_id",
+            "getter_name": "nodeId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_nodes (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_nodes (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_nodes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "started_at_utc",
+            "getter_name": "startedAtUtc",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          },
+          {
+            "name": "ended_at_utc",
+            "getter_name": "endedAtUtc",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          },
+          {
+            "name": "confirmed_minutes",
+            "getter_name": "confirmedMinutes",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "edited",
+            "getter_name": "edited",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"edited\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"edited\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "discarded",
+            "getter_name": "discarded",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"discarded\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"discarded\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "references": [
+        3,
+        6
+      ],
+      "type": "table",
+      "data": {
+        "name": "review_events",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "node_id",
+            "getter_name": "nodeId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_nodes (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_nodes (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_nodes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "event_type",
+            "getter_name": "eventType",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "at_utc",
+            "getter_name": "atUtc",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          },
+          {
+            "name": "local_date",
+            "getter_name": "localDate",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "tz_id",
+            "getter_name": "tzId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "grade",
+            "getter_name": "grade",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const GradeConverter()",
+              "dart_type_name": "Grade"
+            }
+          },
+          {
+            "name": "minutes",
+            "getter_name": "minutes",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "session_id",
+            "getter_name": "sessionId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_sessions (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_sessions (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_sessions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "belt_before",
+            "getter_name": "beltBefore",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const BeltConverter()",
+              "dart_type_name": "Belt"
+            }
+          },
+          {
+            "name": "belt_after",
+            "getter_name": "beltAfter",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const BeltConverter()",
+              "dart_type_name": "Belt"
+            }
+          },
+          {
+            "name": "interval_days",
+            "getter_name": "intervalDays",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ladder_due_after",
+            "getter_name": "ladderDueAfter",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "explanation",
+            "getter_name": "explanation",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "undoes_event_id",
+            "getter_name": "undoesEventId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES review_events (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES review_events (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "review_events",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "batch_id",
+            "getter_name": "batchId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "scheduler",
+            "getter_name": "scheduler",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'ladder\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "scheduler_version",
+            "getter_name": "schedulerVersion",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('1')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (scheduler = 'ladder' AND scheduler_version = 1)",
+          "CHECK (interval_days IS NULL OR interval_days >= 1)",
+          "CHECK (minutes IS NULL OR minutes >= 0)",
+          "CHECK (grade IS NULL OR grade IN ('forgot', 'shaky', 'solid'))",
+          "CHECK (belt_before IS NULL OR belt_before IN ('unread', 'red', 'orange', 'yellow', 'light_green', 'green'))",
+          "CHECK (belt_after IS NULL OR belt_after IN ('unread', 'red', 'orange', 'yellow', 'light_green', 'green'))",
+          "CHECK ((event_type = 'first_study' AND grade IS NULL AND minutes IS NOT NULL AND belt_before = 'unread' AND belt_after = 'red' AND interval_days = 1 AND ladder_due_after IS NOT NULL AND undoes_event_id IS NULL AND batch_id IS NULL) OR (event_type = 'review' AND grade IS NOT NULL AND minutes IS NOT NULL AND belt_before IS NOT NULL AND belt_before <> 'unread' AND belt_after IS NOT NULL AND belt_after <> 'unread' AND interval_days IS NOT NULL AND ladder_due_after IS NOT NULL AND undoes_event_id IS NULL AND batch_id IS NULL) OR (event_type = 'reschedule' AND grade IS NULL AND minutes IS NULL AND session_id IS NULL AND belt_before IS NOT NULL AND belt_after = belt_before AND interval_days IS NULL AND ladder_due_after IS NOT NULL AND undoes_event_id IS NULL AND batch_id IS NOT NULL) OR (event_type = 'undo' AND grade IS NULL AND minutes IS NULL AND session_id IS NULL AND belt_before IS NULL AND belt_after IS NULL AND interval_days IS NULL AND ladder_due_after IS NULL AND undoes_event_id IS NOT NULL AND batch_id IS NULL))"
+        ],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "references": [
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "item_state",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "node_id",
+            "getter_name": "nodeId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_nodes (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_nodes (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_nodes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "belt",
+            "getter_name": "belt",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const BeltConverter()",
+              "dart_type_name": "Belt"
+            }
+          },
+          {
+            "name": "ladder_due",
+            "getter_name": "ladderDue",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "last_review_date",
+            "getter_name": "lastReviewDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "review_count",
+            "getter_name": "reviewCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (belt IN ('unread', 'red', 'orange', 'yellow', 'light_green', 'green'))"
+        ],
+        "explicit_pk": [
+          "node_id"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "day_plans",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "local_date",
+            "getter_name": "localDate",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "budget_minutes",
+            "getter_name": "budgetMinutes",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "review_minutes",
+            "getter_name": "reviewMinutes",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "first_read_minutes",
+            "getter_name": "firstReadMinutes",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "waiting_count",
+            "getter_name": "waitingCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "waiting_minutes",
+            "getter_name": "waitingMinutes",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "catch_up_state",
+            "getter_name": "catchUpState",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'none\\'')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const CatchUpStateConverter()",
+              "dart_type_name": "CatchUpState"
+            }
+          },
+          {
+            "name": "catch_up_batch_id",
+            "getter_name": "catchUpBatchId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "built_at_utc",
+            "getter_name": "builtAtUtc",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (catch_up_state IN ('none', 'offered', 'accepted', 'declined'))"
+        ],
+        "explicit_pk": [
+          "local_date"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "references": [
+        9,
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "day_plan_rows",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "local_date",
+            "getter_name": "localDate",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES day_plans (local_date) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES day_plans (local_date) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "day_plans",
+                    "column": "local_date"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "const LocalDateConverter()",
+              "dart_type_name": "LocalDate"
+            }
+          },
+          {
+            "name": "position",
+            "getter_name": "position",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "node_id",
+            "getter_name": "nodeId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES study_nodes (id)",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES study_nodes (id)"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "study_nodes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "row_type",
+            "getter_name": "rowType",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const RowTypeConverter()",
+              "dart_type_name": "RowType"
+            }
+          },
+          {
+            "name": "estimated_minutes",
+            "getter_name": "estimatedMinutes",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "reason",
+            "getter_name": "reason",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const ReasonConverter()",
+              "dart_type_name": "Reason"
+            }
+          },
+          {
+            "name": "done_at_utc",
+            "getter_name": "doneAtUtc",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK (row_type IN ('review', 'first_read'))",
+          "CHECK (reason IN ('due', 'overdue', 'deadline_risk', 'catch_up', 'first_read'))"
+        ],
+        "explicit_pk": [
+          "local_date",
+          "position"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "settings",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "key",
+            "getter_name": "key",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "value",
+            "getter_name": "value",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "key"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "backup_meta",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "format_version",
+            "getter_name": "formatVersion",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "schema_version",
+            "getter_name": "schemaVersion",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "app_version",
+            "getter_name": "appVersion",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at_utc",
+            "getter_name": "createdAtUtc",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const UtcMillisConverter()",
+              "dart_type_name": "DateTime"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 13,
+      "references": [
+        1
+      ],
+      "type": "index",
+      "data": {
+        "on": 1,
+        "name": "subjects_one_inbox",
+        "sql": "CREATE UNIQUE INDEX subjects_one_inbox ON subjects (is_inbox) WHERE is_inbox = 1",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 14,
+      "references": [
+        3
+      ],
+      "type": "index",
+      "data": {
+        "on": 3,
+        "name": "study_nodes_parent_id",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "parent_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "references": [
+        3
+      ],
+      "type": "index",
+      "data": {
+        "on": 3,
+        "name": "study_nodes_subject_id",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "subject_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "references": [
+        6
+      ],
+      "type": "index",
+      "data": {
+        "on": 6,
+        "name": "study_sessions_one_open",
+        "sql": "CREATE UNIQUE INDEX study_sessions_one_open ON study_sessions ((ended_at_utc IS NULL)) WHERE ended_at_utc IS NULL",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 17,
+      "references": [
+        7
+      ],
+      "type": "index",
+      "data": {
+        "on": 7,
+        "name": "review_events_node_at",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "node_id",
+            "order_by": null
+          },
+          {
+            "column": "at_utc",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "references": [
+        8
+      ],
+      "type": "index",
+      "data": {
+        "on": 8,
+        "name": "item_state_ladder_due",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "ladder_due",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "references": [
+        8
+      ],
+      "type": "index",
+      "data": {
+        "on": 8,
+        "name": "item_state_belt",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "belt",
+            "order_by": null
+          }
+        ]
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "exams",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"exams\" (\"id\" TEXT NOT NULL, \"name\" TEXT NOT NULL, \"exam_date\" TEXT NOT NULL, \"archived_at\" INTEGER NULL, \"created_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "subjects",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"subjects\" (\"id\" TEXT NOT NULL, \"name\" TEXT NOT NULL, \"sort_order\" INTEGER NOT NULL, \"is_inbox\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_inbox\" IN (0, 1)), \"created_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "exam_subjects",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"exam_subjects\" (\"exam_id\" TEXT NOT NULL REFERENCES exams (id), \"subject_id\" TEXT NOT NULL REFERENCES subjects (id), PRIMARY KEY (\"exam_id\", \"subject_id\"));"
+        }
+      ]
+    },
+    {
+      "name": "study_nodes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"study_nodes\" (\"id\" TEXT NOT NULL, \"subject_id\" TEXT NOT NULL REFERENCES subjects (id), \"parent_id\" TEXT NULL REFERENCES study_nodes (id), \"kind\" TEXT NOT NULL, \"task_kind\" TEXT NULL, \"title\" TEXT NOT NULL, \"position_text\" TEXT NULL, \"base_minutes\" INTEGER NULL, \"sort_order\" INTEGER NOT NULL, \"created_at\" INTEGER NOT NULL, \"deleted_at\" INTEGER NULL, \"split_as_i_go\" TEXT NULL CHECK(split_as_i_go IN ('open', 'done')), PRIMARY KEY (\"id\"), CHECK (kind IN ('topic', 'task', 'subtask')), CHECK (task_kind IS NULL OR task_kind IN ('reading', 'pyq', 'other')), CHECK ((kind = 'topic' AND task_kind IS NULL AND base_minutes IS NULL) OR (kind <> 'topic' AND task_kind IS NOT NULL AND base_minutes BETWEEN 10 AND 50)));"
+        }
+      ]
+    },
+    {
+      "name": "source_folders",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"source_folders\" (\"id\" TEXT NOT NULL, \"tree_uri\" TEXT NULL, \"display_name\" TEXT NOT NULL, \"purpose\" TEXT NOT NULL, \"granted_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"), CHECK (purpose IN ('sources', 'backup')));"
+        }
+      ]
+    },
+    {
+      "name": "node_sources",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"node_sources\" (\"node_id\" TEXT NOT NULL REFERENCES study_nodes (id), \"source_type\" TEXT NOT NULL, \"url\" TEXT NULL, \"folder_id\" TEXT NULL REFERENCES source_folders (id), \"relative_path\" TEXT NULL, \"file_name\" TEXT NULL, \"file_size\" INTEGER NULL, \"location_note\" TEXT NULL, \"excerpt\" TEXT NULL, \"link_status\" TEXT NOT NULL, PRIMARY KEY (\"node_id\"), CHECK (source_type IN ('pdf', 'book', 'web', 'ai_chat', 'video', 'notes', 'lecture', 'app', 'other_device')), CHECK (link_status IN ('ok', 'needs_relink', 'not_linked')), CHECK (excerpt IS NULL OR length(excerpt) <= 20000));"
+        }
+      ]
+    },
+    {
+      "name": "study_sessions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"study_sessions\" (\"id\" TEXT NOT NULL, \"node_id\" TEXT NOT NULL REFERENCES study_nodes (id), \"started_at_utc\" INTEGER NOT NULL, \"ended_at_utc\" INTEGER NULL, \"confirmed_minutes\" INTEGER NULL, \"edited\" INTEGER NOT NULL DEFAULT 0 CHECK (\"edited\" IN (0, 1)), \"discarded\" INTEGER NOT NULL DEFAULT 0 CHECK (\"discarded\" IN (0, 1)), PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "review_events",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"review_events\" (\"id\" TEXT NOT NULL, \"node_id\" TEXT NOT NULL REFERENCES study_nodes (id), \"event_type\" TEXT NOT NULL, \"at_utc\" INTEGER NOT NULL, \"local_date\" TEXT NOT NULL, \"tz_id\" TEXT NOT NULL, \"grade\" TEXT NULL, \"minutes\" INTEGER NULL, \"session_id\" TEXT NULL REFERENCES study_sessions (id), \"belt_before\" TEXT NULL, \"belt_after\" TEXT NULL, \"interval_days\" INTEGER NULL, \"ladder_due_after\" TEXT NULL, \"explanation\" TEXT NULL, \"undoes_event_id\" TEXT NULL REFERENCES review_events (id), \"batch_id\" TEXT NULL, \"scheduler\" TEXT NOT NULL DEFAULT 'ladder', \"scheduler_version\" INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (\"id\"), CHECK (scheduler = 'ladder' AND scheduler_version = 1), CHECK (interval_days IS NULL OR interval_days >= 1), CHECK (minutes IS NULL OR minutes >= 0), CHECK (grade IS NULL OR grade IN ('forgot', 'shaky', 'solid')), CHECK (belt_before IS NULL OR belt_before IN ('unread', 'red', 'orange', 'yellow', 'light_green', 'green')), CHECK (belt_after IS NULL OR belt_after IN ('unread', 'red', 'orange', 'yellow', 'light_green', 'green')), CHECK ((event_type = 'first_study' AND grade IS NULL AND minutes IS NOT NULL AND belt_before = 'unread' AND belt_after = 'red' AND interval_days = 1 AND ladder_due_after IS NOT NULL AND undoes_event_id IS NULL AND batch_id IS NULL) OR (event_type = 'review' AND grade IS NOT NULL AND minutes IS NOT NULL AND belt_before IS NOT NULL AND belt_before <> 'unread' AND belt_after IS NOT NULL AND belt_after <> 'unread' AND interval_days IS NOT NULL AND ladder_due_after IS NOT NULL AND undoes_event_id IS NULL AND batch_id IS NULL) OR (event_type = 'reschedule' AND grade IS NULL AND minutes IS NULL AND session_id IS NULL AND belt_before IS NOT NULL AND belt_after = belt_before AND interval_days IS NULL AND ladder_due_after IS NOT NULL AND undoes_event_id IS NULL AND batch_id IS NOT NULL) OR (event_type = 'undo' AND grade IS NULL AND minutes IS NULL AND session_id IS NULL AND belt_before IS NULL AND belt_after IS NULL AND interval_days IS NULL AND ladder_due_after IS NULL AND undoes_event_id IS NOT NULL AND batch_id IS NULL)));"
+        }
+      ]
+    },
+    {
+      "name": "item_state",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"item_state\" (\"node_id\" TEXT NOT NULL REFERENCES study_nodes (id), \"belt\" TEXT NOT NULL, \"ladder_due\" TEXT NULL, \"last_review_date\" TEXT NULL, \"review_count\" INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (\"node_id\"), CHECK (belt IN ('unread', 'red', 'orange', 'yellow', 'light_green', 'green')));"
+        }
+      ]
+    },
+    {
+      "name": "day_plans",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"day_plans\" (\"local_date\" TEXT NOT NULL, \"budget_minutes\" INTEGER NOT NULL, \"review_minutes\" INTEGER NOT NULL, \"first_read_minutes\" INTEGER NOT NULL, \"waiting_count\" INTEGER NOT NULL, \"waiting_minutes\" INTEGER NOT NULL, \"catch_up_state\" TEXT NOT NULL DEFAULT 'none', \"catch_up_batch_id\" TEXT NULL, \"built_at_utc\" INTEGER NOT NULL, PRIMARY KEY (\"local_date\"), CHECK (catch_up_state IN ('none', 'offered', 'accepted', 'declined')));"
+        }
+      ]
+    },
+    {
+      "name": "day_plan_rows",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"day_plan_rows\" (\"local_date\" TEXT NOT NULL REFERENCES day_plans (local_date) ON DELETE CASCADE, \"position\" INTEGER NOT NULL, \"node_id\" TEXT NOT NULL REFERENCES study_nodes (id), \"row_type\" TEXT NOT NULL, \"estimated_minutes\" INTEGER NOT NULL, \"reason\" TEXT NOT NULL, \"done_at_utc\" INTEGER NULL, PRIMARY KEY (\"local_date\", \"position\"), CHECK (row_type IN ('review', 'first_read')), CHECK (reason IN ('due', 'overdue', 'deadline_risk', 'catch_up', 'first_read')));"
+        }
+      ]
+    },
+    {
+      "name": "settings",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"settings\" (\"key\" TEXT NOT NULL, \"value\" TEXT NULL, PRIMARY KEY (\"key\"));"
+        }
+      ]
+    },
+    {
+      "name": "backup_meta",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"backup_meta\" (\"format_version\" INTEGER NOT NULL, \"schema_version\" INTEGER NOT NULL, \"app_version\" TEXT NOT NULL, \"created_at_utc\" INTEGER NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "subjects_one_inbox",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX subjects_one_inbox ON subjects (is_inbox) WHERE is_inbox = 1"
+        }
+      ]
+    },
+    {
+      "name": "study_nodes_parent_id",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX study_nodes_parent_id ON study_nodes (parent_id)"
+        }
+      ]
+    },
+    {
+      "name": "study_nodes_subject_id",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX study_nodes_subject_id ON study_nodes (subject_id)"
+        }
+      ]
+    },
+    {
+      "name": "study_sessions_one_open",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX study_sessions_one_open ON study_sessions ((ended_at_utc IS NULL)) WHERE ended_at_utc IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "review_events_node_at",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX review_events_node_at ON review_events (node_id, at_utc)"
+        }
+      ]
+    },
+    {
+      "name": "item_state_ladder_due",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX item_state_ladder_due ON item_state (ladder_due)"
+        }
+      ]
+    },
+    {
+      "name": "item_state_belt",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX item_state_belt ON item_state (belt)"
+        }
+      ]
+    }
+  ]
+}

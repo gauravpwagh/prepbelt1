@@ -32,6 +32,9 @@ class ItemView {
   final DueExplanation explanation;
 
   bool get reviewable => isReviewable(node.kind, children.length);
+
+  /// An open task split as you go (design §10b): studied part by part.
+  bool get asIGo => node.splitAsIGo == SplitAsIGo.open;
   bool get canSplit_ => node.kind == NodeKind.task && canSplit(eventCount);
   bool get canAddChild_ => canAddChild(node.kind, eventCount);
   ItemState get state => explanation.state;

@@ -34,8 +34,13 @@ class TodayEntry {
   final LocalDate? due;
   final bool doneToday;
 
-  /// "Laxmikant · Ch 3" for a subtask; the task title otherwise.
-  String get title => parentTitle == null ? node.title : '$parentTitle · ${node.title}';
+  /// "Laxmikant · Ch 3" for a subtask, "Spectrum · next part" for a task
+  /// split as you go (design §10b); the task title otherwise.
+  String get title => parentTitle != null
+      ? '$parentTitle · ${node.title}'
+      : node.splitAsIGo == SplitAsIGo.open
+          ? '${node.title} · next part'
+          : node.title;
 }
 
 /// One group of Coming up: a day, next week or later.

@@ -58,6 +58,13 @@ class StudyNodes extends Table {
   IntColumn get deletedAt =>
       integer().nullable().map(const UtcMillisConverter())();
 
+  /// Schema v2 (design D17): `open` or `done` for a task split as you go.
+  TextColumn get splitAsIGo => text()
+      .named('split_as_i_go')
+      .nullable()
+      .check(const CustomExpression<bool>("split_as_i_go IN ('open', 'done')"))
+      .map(const SplitAsIGoConverter())();
+
   @override
   Set<Column> get primaryKey => {id};
 

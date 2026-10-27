@@ -100,6 +100,13 @@ class _ItemBody extends ConsumerWidget {
     ));
   }
 
+  Future<void> _finish(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await ref.read(markStudiedProvider).finish(v.node.id);
+    await ref.read(buildTodayPlanProvider).refresh();
+    messenger.showSnackBar(SnackBar(content: Text('"${v.node.title}" is finished')));
+  }
+
   Future<void> _move(BuildContext context, WidgetRef ref) async {
     final to = await showMoveSheet(context, v.node);
     if (to == null || !context.mounted) return;
@@ -132,11 +139,13 @@ class _ItemBody extends ConsumerWidget {
             onSelected: (a) => switch (a) {
               'move' => _move(context, ref),
               'delete' => _delete(context, ref),
+              'finish' => _finish(context, ref),
               _ => null,
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'move', child: Text('Move…')),
-              PopupMenuItem(value: 'delete', child: Text('Delete')),
+            itemBuilder: (_) => [
+              if (v.asIGo) const PopupMenuItem(value: 'finish', child: Text('Mark finished')),
+              const PopupMenuItem(value: 'move', child: Text('Move…')),
+              const PopupMenuItem(value: 'delete', child: Text('Delete')),
             ],
           ),
         ],
@@ -145,14 +154,33 @@ class _ItemBody extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            if (v.reviewable) BeltChip(v.state.belt),
+            if (v.reviewable && !v.asIGo) BeltChip(v.state.belt),
+            if (v.asIGo) const Chip(label: Text('Split as I go')),
             Chip(label: Text(v.subject.name)),
             if (n.taskKind != null) Chip(label: Text(taskKindLabel(n.taskKind!))),
             if (n.baseMinutes != null) Chip(label: MinutesText(n.baseMinutes!)),
             if (n.positionText != null) Chip(label: Text(n.positionText!)),
           ]),
           const SizedBox(height: 12),
-          if (v.reviewable) ...[
+          if (v.asIGo) ...[
+            Text(
+              v.children.isEmpty
+                  ? 'No parts yet'
+                  : '${v.children.length} ${v.children.length == 1 ? 'part' : 'parts'} so far',
+              style: text.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            const Text('Each time you study it, name the part you covered.'),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              if (rowAction != null) rowAction(context, n.id, unread: true),
+              OutlinedButton(
+                key: const Key('item-record'),
+                onPressed: () => sheets.studied(context, n.id),
+                child: const Text('Mark part studied'),
+              ),
+            ]),
+          ] else if (v.reviewable) ...[
             Text(
               unread
                   ? 'Not studied yet'
@@ -217,14 +245,14 @@ class _ItemBody extends ConsumerWidget {
                 label: const Text('Add subtask'),
                 onPressed: () => context.push('/add?parent=${n.id}&kind=subtask'),
               ),
-            if (v.canSplit_)
+            if (v.canSplit_ && !v.asIGo)
               OutlinedButton.icon(
                 key: const Key('item-split'),
                 icon: const Icon(Icons.call_split),
                 label: const Text('Split into chapters'),
                 onPressed: () => context.push('/add/split/${n.id}'),
               ),
-            if (n.kind == NodeKind.task && !v.canSplit_)
+            if (n.kind == NodeKind.task && !v.canSplit_ && !v.asIGo)
               OutlinedButton.icon(
                 icon: const Icon(Icons.library_add),
                 label: const Text('Create a new task with chapters'),

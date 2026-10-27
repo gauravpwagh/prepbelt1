@@ -45,6 +45,7 @@ class AddItemRequest {
     this.baseMinutes,
     this.positionText,
     this.source,
+    this.asIGo = false,
   });
 
   final String title;
@@ -58,6 +59,9 @@ class AddItemRequest {
   final int? baseMinutes;
   final String? positionText;
   final NewSource? source;
+
+  /// Split as you go (design D17); tasks only.
+  final bool asIGo;
 }
 
 /// Adds a topic, task or subtask (plan item 78).
@@ -92,6 +96,9 @@ class AddItem {
           throw StateError('This task has review history, so it cannot gain '
               'subtasks. Create a new task with chapters instead.');
         }
+        if (r.asIGo && r.kind != NodeKind.task) {
+          throw ArgumentError('Only tasks can be split as you go');
+        }
         if (r.source != null && r.kind != NodeKind.task) {
           throw ArgumentError('Only tasks carry a source');
         }
@@ -120,6 +127,7 @@ class AddItem {
           baseMinutes: Value(base),
           sortOrder: await _db.nodesDao.nextSortOrder(subjectId, parent?.id),
           createdAt: _now(),
+          splitAsIGo: Value(r.asIGo ? SplitAsIGo.open : null),
         ));
         final s = r.source;
         if (s != null) {

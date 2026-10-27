@@ -80,6 +80,7 @@ class _AddFormState extends ConsumerState<_AddForm> {
   SourceType? _sourceType;
   NewSource? _pickedPdf;
   SplitSpec? _split;
+  var _asIGo = false;
   var _saving = false;
 
   // Subjects and topics created from this form (design §10a).
@@ -200,8 +201,9 @@ class _AddFormState extends ConsumerState<_AddForm> {
         baseMinutes: _kind == NodeKind.topic ? null : _base,
         positionText: _position.text,
         source: _source,
+        asIGo: _asIGo && _kind == NodeKind.task,
       ));
-      if (_split != null && _kind == NodeKind.task) {
+      if (_split != null && !_asIGo && _kind == NodeKind.task) {
         await ref.read(splitItemProvider)(id, _split!);
       }
       await ref.read(buildTodayPlanProvider).refresh();
@@ -379,8 +381,18 @@ class _AddFormState extends ConsumerState<_AddForm> {
           ExpansionTile(
             initiallyExpanded: widget.startWithSplit,
             tilePadding: EdgeInsets.zero,
-            title: const Text('Split into chapters'),
-            children: [SplitFields(onChanged: (s) => _split = s)],
+            title: const Text('Split into parts'),
+            children: [
+              SwitchListTile(
+                key: const Key('add-as-i-go'),
+                contentPadding: EdgeInsets.zero,
+                value: _asIGo,
+                title: const Text('Split as I go'),
+                subtitle: const Text('Name each part when you finish studying it'),
+                onChanged: (v) => setState(() => _asIGo = v),
+              ),
+              if (!_asIGo) SplitFields(onChanged: (s) => _split = s),
+            ],
           ),
         ],
         const SizedBox(height: 24),

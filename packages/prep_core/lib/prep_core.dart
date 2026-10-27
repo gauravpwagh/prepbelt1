@@ -1,6 +1,7 @@
 /// Pure rules for PrepBelt. No Flutter, Drift, platform or dart:io code.
 library;
 
+export 'src/as_i_go.dart';
 export 'src/belt.dart';
 export 'src/belt_policy.dart';
 export 'src/catch_up.dart';

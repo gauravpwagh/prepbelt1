@@ -715,6 +715,15 @@ Starts after the Android internal test, and after the author answers the design'
 131. **`features/today/today_screen.dart`** (Modify): collapsible sections with saved open state, 5 rows then "Show all", the dashed line, view-only Coming up rows, the all-done line. The waiting line is removed.
 132. **Tests** (Create `test/features/today_sections_test.dart`, `packages/prep_core/test/today_lists_test.dart`; Modify `test/features/widgets_test.dart`): the design's "Today sections (D16)" test row.
 
+### M12: split as I go (design D17, §10b)
+
+133. **`packages/prep_core/lib/src/as_i_go.dart`** (Create): `SplitAsIGo` (`open`/`done`), `nextPartTitle`, `partBaseMinutes`. **`exam_package.dart`** (Modify): optional `split_as_i_go` on nodes, format version unchanged.
+134. **Schema v2** (Modify `tables.dart`, `converters.dart`, `app_database.dart`; Generated `app_database.steps.dart`, `drift_schemas/app_database/drift_schema_v2.json`, `test/drift/app_database/`): `study_nodes.split_as_i_go`, added by the `from1To2` step; the migration test checks existing rows.
+135. **`app/lib/application/mark_studied.dart`** (Modify): `StudiedPart`; studying an open task adds the part, moves the plan row, writes the part's first study and ends the task on the last part; `nextPart` and `finish`. **`add_item.dart`** (Modify): `asIGo`. **`study_writer.dart`** (Modify): refuses events on an open task. **`nodes_dao.planning`** (Modify): plans an open task with parts. **`plans_dao.moveOpenRow`** (Create). **Exam exporter and importer** (Modify): carry the field.
+136. **`app/lib/core/widgets/part_fields.dart`** (Create): "What did you cover?" and "That was the last part", used by the Finish and Mark studied sheets.
+137. **Features** (Modify): the Add form's "Split as I go" switch; the Item screen's part count, Start, "Mark part studied" and Mark finished; "· next part" on Today; "Split as I go" in the Library.
+138. **Tests** (Create `test/features/as_i_go_test.dart`, `packages/prep_core/test/as_i_go_test.dart`; Modify the schema-version expectations in `logging_test.dart` and `backup_restore_test.dart`): the design's "Split as I go (D17)" test row.
+
 --------------------------------------------------------------------------------
 
 ## Verification Plan

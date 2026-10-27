@@ -90,6 +90,7 @@ class ExamExporter {
             baseMinutes: n.baseMinutes,
             sortOrder: n.sortOrder,
             createdAtUtcMs: n.createdAt.millisecondsSinceEpoch,
+            splitAsIGo: n.splitAsIGo,
           ),
       ],
       sources: sources,

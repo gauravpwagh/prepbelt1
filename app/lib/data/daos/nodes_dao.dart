@@ -178,7 +178,9 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
     final nodes = <NodeRow>[];
     final keys = <String, SortKey>{};
     for (final n in live.values) {
-      if (n.kind == NodeKind.topic || hasChildren.contains(n.id)) continue;
+      // An open "as I go" task is planned as its next part (design §10b).
+      final nextPart = n.splitAsIGo == SplitAsIGo.open;
+      if (n.kind == NodeKind.topic || (hasChildren.contains(n.id) && !nextPart)) continue;
       if (!includeInbox && inbox.contains(n.subjectId)) continue;
       final task = n.kind == NodeKind.subtask ? live[n.parentId] : n;
       if (task == null) continue; // A subtask whose task is deleted.

@@ -96,6 +96,19 @@ class PlansDao extends DatabaseAccessor<AppDatabase> with _$PlansDaoMixin {
     return n > 0;
   }
 
+  /// Moves [fromNodeId]'s open row on [date] to [toNodeId] (a part studied
+  /// for a task split as you go, design §10b). Returns false when there is
+  /// no open row.
+  Future<bool> moveOpenRow(LocalDate date, String fromNodeId, String toNodeId) async {
+    final n = await (update(dayPlanRows)
+          ..where((r) =>
+              r.localDate.equalsValue(date) &
+              r.nodeId.equals(fromNodeId) &
+              r.doneAtUtc.isNull()))
+        .write(DayPlanRowsCompanion(nodeId: Value(toNodeId)));
+    return n > 0;
+  }
+
   /// Clears `done_at_utc` on [nodeId]'s row on [date] (Undo, design §3).
   Future<void> clearDone(LocalDate date, String nodeId) => (update(dayPlanRows)
         ..where((r) => r.localDate.equalsValue(date) & r.nodeId.equals(nodeId)))

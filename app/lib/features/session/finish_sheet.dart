@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/finish_session.dart';
+import '../../application/mark_studied.dart';
 import '../../core/format.dart';
 import '../../core/providers.dart';
 import '../../core/sheets.dart';
+import '../../core/widgets/part_fields.dart';
 
 var _showing = false;
 
@@ -18,9 +20,9 @@ Future<void> showFinishSheet(BuildContext context) async {
   if (open == null || !context.mounted) return;
 
   _showing = true;
-  final FinishOutcome? outcome;
+  final (FinishOutcome, StudiedPart?)? result;
   try {
-    outcome = await showModalBottomSheet<FinishOutcome>(
+    result = await showModalBottomSheet<(FinishOutcome, StudiedPart?)>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -30,11 +32,13 @@ Future<void> showFinishSheet(BuildContext context) async {
     _showing = false;
   }
   await container.read(reconcileNotificationsProvider)();
-  if (outcome == null || !context.mounted) return;
+  if (result == null || !context.mounted) return;
 
+  final (outcome, part) = result;
   switch (outcome) {
     case NeedsFirstStudy(:final nodeId, :final minutes, :final sessionId):
-      final e = await container.read(markStudiedProvider)(nodeId, minutes, sessionId: sessionId);
+      final e = await container
+          .read(markStudiedProvider)(nodeId, minutes, sessionId: sessionId, part: part);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Red · next review ${formatShortDate(e.outcome.ladderDue!)}'),
@@ -57,6 +61,7 @@ class FinishSheet extends ConsumerStatefulWidget {
 
 class _FinishSheetState extends ConsumerState<FinishSheet> {
   late final _minutes = TextEditingController(text: '${widget.open.prefill}');
+  StudiedPart? _part;
   var _busy = false;
 
   @override
@@ -68,10 +73,11 @@ class _FinishSheetState extends ConsumerState<FinishSheet> {
   Future<void> _confirm() async {
     final m = int.tryParse(_minutes.text.trim());
     if (m == null || m < 0) return;
+    if (_part != null && _part!.title.trim().isEmpty) return;
     setState(() => _busy = true);
     final navigator = Navigator.of(context);
     final outcome = await ref.read(finishSessionProvider).confirm(widget.open, m);
-    navigator.pop(outcome);
+    navigator.pop((outcome, _part));
   }
 
   Future<void> _discard() async {
@@ -107,6 +113,8 @@ class _FinishSheetState extends ConsumerState<FinishSheet> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Minutes studied', suffixText: 'min'),
             ),
+            if (o.unread)
+              PartFields(nodeId: o.session.nodeId, onChanged: (p) => _part = p),
             const SizedBox(height: 12),
             FilledButton(
               key: const Key('finish-confirm'),

@@ -42,7 +42,7 @@ void main() {
         appVersion: '0.1.0', tzId: 'Asia/Kolkata', cacheDir: () async => dir.path, now: () => t0);
 
     final meta = await share.meta();
-    expect(meta, contains('PrepBelt 0.1.0 (schema 1)'));
+    expect(meta, contains('PrepBelt 0.1.0 (schema 2)'));
     expect(meta, contains('Notifications allowed: false'));
     expect(meta, contains('Battery optimisation ignored: true'));
     expect(meta, contains('Time zone: Asia/Kolkata'));

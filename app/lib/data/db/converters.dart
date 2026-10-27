@@ -65,6 +65,14 @@ class NodeKindConverter extends _KeyConverter<NodeKind> {
   String keyOf(NodeKind value) => value.key;
 }
 
+class SplitAsIGoConverter extends _KeyConverter<SplitAsIGo> {
+  const SplitAsIGoConverter();
+  @override
+  List<SplitAsIGo> get values => SplitAsIGo.values;
+  @override
+  String keyOf(SplitAsIGo value) => value.key;
+}
+
 class TaskKindConverter extends _KeyConverter<TaskKind> {
   const TaskKindConverter();
   @override

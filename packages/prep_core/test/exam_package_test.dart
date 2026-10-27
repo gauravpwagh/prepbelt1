@@ -46,7 +46,7 @@ ExamPackage sample({PackageMode mode = PackageMode.progress}) {
           sortOrder: 0, createdAtUtcMs: 1),
       PkgNode(id: 'k1', subjectId: 'sub1', parentId: 't1', kind: NodeKind.task,
           taskKind: TaskKind.reading, title: 'Laxmikant', baseMinutes: 30, sortOrder: 0,
-          createdAtUtcMs: 2),
+          createdAtUtcMs: 2, splitAsIGo: SplitAsIGo.open),
       PkgNode(id: 'st1', subjectId: 'sub1', parentId: 'k1', kind: NodeKind.subtask,
           taskKind: TaskKind.reading, title: 'Ch 1', positionText: 'Ch 1', baseMinutes: 30,
           sortOrder: 0, createdAtUtcMs: 3),
@@ -84,6 +84,9 @@ void main() {
       final p = sample();
       final again = ExamPackage.decode(p.encode());
       expect(again.encode(), p.encode());
+      expect(again.nodes[1].splitAsIGo, SplitAsIGo.open);
+      expect(again.nodes[0].splitAsIGo, isNull);
+      expect(p.encode(), isNot(contains('"split_as_i_go": null')));
       expect(again.events.length, 6);
     });
 

@@ -18,6 +18,7 @@ class NodeTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final n = item.node;
     final indent = 16.0 + 20.0 * depth;
+    final asIGo = n.splitAsIGo == SplitAsIGo.open;
     final tile = ListTile(
       key: Key('node-${n.id}'),
       selected: isOpenInPane(context, ref, n.id),
@@ -29,9 +30,12 @@ class NodeTile extends ConsumerWidget {
       }),
       title: Text(n.title),
       subtitle: item.isLeaf
-          ? null
+          ? (asIGo ? const Text('Split as I go · no parts yet') : null)
           : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(item.rollup.total == 0 ? 'Empty' : rollupLabel(item.rollup)),
+              Text([
+                if (asIGo) 'Split as I go',
+                item.rollup.total == 0 ? 'Empty' : rollupLabel(item.rollup),
+              ].join(' · ')),
               const SizedBox(height: 4),
               RollupBar(item.rollup, height: 4),
             ]),
