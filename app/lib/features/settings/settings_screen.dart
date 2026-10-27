@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
-import '../../core/slots.dart';
 import 'settings_providers.dart';
+import 'widgets/source_folders_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -44,7 +44,6 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(settingsViewProvider);
-    final extra = ref.watch(settingsSectionsProvider);
     final actions = ref.read(settingsActionsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -83,7 +82,7 @@ class SettingsScreen extends ConsumerWidget {
                 if (t != null) await actions.setReminderTime(t.hour, t.minute);
               },
             ),
-            ...extra,
+            const SourceFoldersSection(),
             ListTile(
               leading: const Icon(Icons.health_and_safety_outlined),
               title: const Text('Diagnostics'),

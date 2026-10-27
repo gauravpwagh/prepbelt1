@@ -4,16 +4,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prep_core/prep_core.dart';
 import 'package:prepbelt/app.dart';
 import 'package:prepbelt/core/providers.dart';
+import 'package:prepbelt/platform/share_receiver.dart';
 
 import '../application/app_helpers.dart';
 
 void main() {
   late Fixture f;
   late ProviderContainer c;
+  late FakeShareReceiver shares;
 
   setUp(() {
     f = Fixture();
-    c = containerFor(f);
+    shares = FakeShareReceiver();
+    c = containerFor(f, shares: shares);
   });
 
   Future<void> pumpApp(WidgetTester tester) async {
@@ -149,6 +152,39 @@ void main() {
     expect(find.text('Today'), findsWidgets);
     expect(find.text('Laxmikant Ch 1–5'), findsOneWidget);
     expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    await tearDownApp(tester);
+  });
+
+  testWidgets('Share capture sheet saves a shared link to the Inbox (CUJ 2b)', (tester) async {
+    await f.seedTree();
+    await pumpApp(tester);
+    shares.send(const IncomingShare(text: 'https://chatgpt.com/share/xyz', subject: 'Federalism'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add to PrepBelt'), findsOneWidget);
+    expect(find.text('AI chat'), findsOneWidget);
+    expect(find.text('Federalism'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('share-save')));
+    await tester.pumpAndSettle();
+
+    final inbox = (await f.db.subjectsDao.inbox())!;
+    final roots = await f.db.nodesDao.roots(inbox.id);
+    expect(roots.single.title, 'Federalism');
+    expect(find.text('Saved as Planned'), findsOneWidget);
+    await tearDownApp(tester);
+  });
+
+  testWidgets('A share before onboarding waits until onboarding is done', (tester) async {
+    c.read(onboardingDoneProvider.notifier).set(false);
+    await pumpApp(tester);
+    shares.send(const IncomingShare(text: 'Read Article 21 notes'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add to PrepBelt'), findsNothing);
+
+    c.read(onboardingDoneProvider.notifier).set(true);
+    await tester.pumpAndSettle();
+    expect(find.text('Add to PrepBelt'), findsOneWidget);
+    expect(find.text('Notes'), findsOneWidget);
     await tearDownApp(tester);
   });
 }

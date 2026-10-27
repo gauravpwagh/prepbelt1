@@ -6,9 +6,9 @@ import 'package:prep_core/prep_core.dart';
 import '../../application/add_item.dart';
 import '../../core/labels.dart';
 import '../../core/providers.dart';
-import '../../core/slots.dart';
 import '../../data/db/app_database.dart';
 import 'capture_providers.dart';
+import 'source_picker_sheet.dart';
 import 'split_fields.dart';
 
 /// The full Add form (design §10): title, subject and topic (last used
@@ -169,7 +169,6 @@ class _AddFormState extends ConsumerState<_AddForm> {
   Widget build(BuildContext context) {
     final d = widget.data;
     final topics = d.topicsBySubject[_subjectId] ?? const [];
-    final pdfPicker = ref.watch(pdfPickerProvider);
     final isTopic = _kind == NodeKind.topic;
     final base = _base ?? _taskKind.defaultBaseMinutes;
     const gap = SizedBox(height: 12);
@@ -275,15 +274,15 @@ class _AddFormState extends ConsumerState<_AddForm> {
           ],
           if (_sourceType == SourceType.pdf) ...[
             gap,
-            if (pdfPicker != null)
-              OutlinedButton.icon(
-                icon: const Icon(Icons.folder_open),
-                label: Text(_pickedPdf?.fileName ?? 'Pick from a folder'),
-                onPressed: () async {
-                  final picked = await pdfPicker(context);
-                  if (picked != null) setState(() => _pickedPdf = picked);
-                },
-              ),
+            OutlinedButton.icon(
+              key: const Key('add-pick-pdf'),
+              icon: const Icon(Icons.folder_open),
+              label: Text(_pickedPdf?.fileName ?? 'Pick from a folder'),
+              onPressed: () async {
+                final picked = await pickPdfSource(context, ref);
+                if (picked != null) setState(() => _pickedPdf = picked);
+              },
+            ),
             if (_pickedPdf == null)
               TextField(
                 controller: _url,

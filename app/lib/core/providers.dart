@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../application/add_item.dart';
 import '../application/build_today_plan.dart';
+import '../application/capture_shared.dart';
 import '../application/complete_onboarding.dart';
 import '../application/delete_item.dart';
 import '../application/discard_session.dart';
@@ -14,7 +15,9 @@ import '../application/finish_session.dart';
 import '../application/grade_review.dart';
 import '../application/mark_studied.dart';
 import '../application/reconcile_notifications.dart';
+import '../application/relink_sources.dart';
 import '../application/save_exam.dart';
+import '../application/source_folders.dart';
 import '../application/split_item.dart';
 import '../application/start_session.dart';
 import '../application/undo_latest.dart';
@@ -22,7 +25,9 @@ import '../data/db/app_database.dart';
 import '../data/study_writer.dart';
 import '../platform/clock.dart';
 import '../platform/device_status.dart';
+import '../platform/folder_access.dart';
 import '../platform/notification_port.dart';
+import '../platform/share_receiver.dart';
 import '../platform/source_opener.dart';
 
 /// Overridden by `bootstrap()` with the opened database.
@@ -145,7 +150,27 @@ final notificationPortProvider =
 
 final deviceStatusProvider = Provider<DeviceStatus>((ref) => const AndroidDeviceStatus());
 
-final sourceOpenerProvider = Provider<SourceOpener>((ref) => const NoopSourceOpener());
+final folderAccessProvider = Provider<FolderAccess>((ref) => SafFolderAccess());
+
+final sourceOpenerProvider = Provider<SourceOpener>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return IntentSourceOpener(ref.watch(folderAccessProvider),
+      treeUriOf: (id) async => (await db.sourcesDao.folderById(id))?.treeUri);
+});
+
+final shareReceiverProvider = Provider<ShareReceiver>((ref) => IntentShareReceiver());
+
+// ---- folders, sources and sharing ----
+
+final sourceFoldersProvider = Provider<SourceFolders>((ref) => SourceFolders(
+    ref.watch(appDatabaseProvider), ref.watch(folderAccessProvider),
+    newId: ref.watch(idGeneratorProvider), now: _now(ref)));
+
+final relinkSourcesProvider = Provider<RelinkSources>(
+    (ref) => RelinkSources(ref.watch(appDatabaseProvider), ref.watch(folderAccessProvider)));
+
+final captureSharedProvider = Provider<CaptureShared>((ref) => CaptureShared(
+    ref.watch(appDatabaseProvider), ref.watch(folderAccessProvider), ref.watch(addItemProvider)));
 
 // ---- sessions and notifications ----
 

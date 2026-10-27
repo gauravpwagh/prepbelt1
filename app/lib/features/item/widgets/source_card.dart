@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prep_core/prep_core.dart';
 
 import '../../../core/labels.dart';
-import '../../../core/slots.dart';
+import '../../../core/providers.dart';
+import '../../../core/widgets/folder_chooser.dart';
+import '../../../platform/source_opener.dart';
 import '../../../data/db/app_database.dart';
 import '../../../data/db/converters.dart';
 
-/// The item's source: type, link or file, location note and status. Open
-/// and Re-link come from [sourceActionsProvider] once folder access exists.
+/// The item's source: type, link or file, location note and status, with
+/// Open and Re-link (design §10).
 class SourceCard extends ConsumerWidget {
   const SourceCard({super.key, required this.source, required this.owner});
 
@@ -19,7 +21,6 @@ class SourceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = source;
     final text = Theme.of(context).textTheme;
-    final actions = ref.watch(sourceActionsProvider);
     final detail = s.url ?? s.fileName ?? s.locationNote;
     return Card(
       key: const Key('source-card'),
@@ -47,10 +48,43 @@ class SourceCard extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(s.excerpt!, maxLines: 4, overflow: TextOverflow.ellipsis, style: text.bodySmall),
           ],
-          if (actions != null) actions(context, owner.id),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, children: [
+            if (s.url != null || s.relativePath != null)
+              FilledButton.tonalIcon(
+                key: const Key('source-open'),
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Open'),
+                onPressed: () => _open(context, ref),
+              ),
+            if (s.sourceType == SourceType.pdf)
+              OutlinedButton.icon(
+                key: const Key('source-relink'),
+                icon: const Icon(Icons.link),
+                label: const Text('Re-link'),
+                onPressed: () => relinkByFolder(context, ref),
+              ),
+          ]),
         ]),
       ),
     );
+  }
+
+  Future<void> _open(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final r = await ref.read(sourceOpenerProvider).open(source);
+    switch (r) {
+      case OpenResult.ok:
+        break;
+      case OpenResult.notFound:
+        await ref
+            .read(appDatabaseProvider)
+            .sourcesDao
+            .setLinkStatus(source.nodeId, LinkStatus.needsRelink);
+        messenger.showSnackBar(const SnackBar(content: Text('File not found. Re-link it.')));
+      case OpenResult.noApp:
+        messenger.showSnackBar(const SnackBar(content: Text('No app can open this source.')));
+    }
   }
 }
 

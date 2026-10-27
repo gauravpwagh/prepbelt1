@@ -15,8 +15,12 @@ ProviderContainer containerFor(
   FakeNotifications? notifications,
   FakeOpener? opener,
   FakeDeviceStatus? device,
+  FakeFolderAccess? folders,
+  FakeShareReceiver? shares,
 }) {
   final c = ProviderContainer(overrides: [
+    folderAccessProvider.overrideWithValue(folders ?? FakeFolderAccess()),
+    shareReceiverProvider.overrideWithValue(shares ?? FakeShareReceiver()),
     notificationPortProvider.overrideWithValue(notifications ?? FakeNotifications()),
     sourceOpenerProvider.overrideWithValue(opener ?? FakeOpener()),
     deviceStatusProvider.overrideWithValue(device ?? FakeDeviceStatus()),
