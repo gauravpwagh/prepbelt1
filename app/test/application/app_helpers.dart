@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prepbelt/app.dart';
 import 'package:prepbelt/core/providers.dart';
 import 'package:prepbelt/platform/logging.dart';
+import 'package:prepbelt/platform/notification_port.dart';
 
 import '../data/helpers.dart';
 import '../fakes.dart';
@@ -15,7 +16,7 @@ export '../fakes.dart';
 ProviderContainer containerFor(
   Fixture f, {
   List<dynamic> extra = const [],
-  FakeNotifications? notifications,
+  NotificationPort? notifications,
   FakeOpener? opener,
   FakeDeviceStatus? device,
   FakeFolderAccess? folders,

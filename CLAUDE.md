@@ -36,7 +36,7 @@ All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 1
 
 ## Not yet verified (needs a device)
 
-*   **Integration tests** (`app/integration_test/`) need API 26 and API 36 emulators: `flutter test integration_test`. Only the export/import one also runs on the host.
+*   **Integration tests** (`app/integration_test/`): all three pass on the local Pixel 9 API 35 emulator (`flutter test integration_test -d emulator-5554`). The plan also asks for API 26 and API 36 runs; no such emulators exist here yet.
 *   **Performance** (design NFR) must be measured in a profile build on a 4 GB phone with `test/perf/seed_5k.dart`. On the development PC (debug, in-memory) the plan input and build takes about 90 ms and the Library queries about 55 ms.
 *   **Manual release checks** in the implementation plan's Verification Plan (Xiaomi/Oppo/Vivo, kill during a session, restore on a second device, sharing from real apps).
 *   Local APK builds need the Android SDK licenses accepted (`flutter doctor --android-licenses`); CI builds the release APK and checks there is no INTERNET permission.
@@ -46,6 +46,8 @@ All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 1
 *   Features never import each other. Sheets or widgets that one feature shows inside another go through `core/sheets.dart` (`AppSheets`) and `core/slots.dart`, which `app.dart` fills. Shared flows that only need providers live in `core/widgets/` (folder chooser, restore flow).
 *   Only `platform/clock.dart` reads the system time; the log sink and the notification port take a clock.
 *   `appDatabaseProvider` owns the database (closed on dispose). Restore closes it, swaps the file and invalidates the provider; `restoreBackupFor(container)` builds the restore use case from the root container for that reason.
+*   `app/android/build.gradle.kts` carries a shim for `receive_sharing_intent` 1.9.0, which is written for AGP 9 (built-in Kotlin, compileSdk 37): it applies the Kotlin plugin and compiles it against SDK 36. Local Flutter 3.41.6 needs it; it is a no-op on CI's newer tooling.
+*   Time zones load from `timezone/data/latest_all.dart` (`platform/time_zone.dart`): Android reports legacy names such as "Asia/Calcutta" that the default data set lacks.
 *   Local Flutter is 3.41.6 while CI uses 3.47.8. On 3.41.6 the newest compatible Drift is 2.34.0, so `drift` and `drift_dev` are pinned exactly.
 
 ## Rules that must not be broken

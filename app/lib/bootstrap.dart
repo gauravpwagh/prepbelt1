@@ -6,14 +6,13 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:timezone/timezone.dart' as tz;
 
 import 'app.dart';
 import 'core/providers.dart';
 import 'data/backup/pre_migration_backup.dart';
 import 'platform/clock.dart';
 import 'platform/logging.dart';
+import 'platform/time_zone.dart';
 import 'router.dart';
 
 final _log = Logger('bootstrap');
@@ -30,16 +29,14 @@ Future<ProviderContainer> bootstrap() async {
   initLogging(sink);
   installErrorHooks(sink);
 
-  tzdata.initializeTimeZones();
-  var tzId = 'UTC';
+  String? deviceZone;
   try {
-    tzId = (await FlutterTimezone.getLocalTimezone()).identifier;
-    tz.setLocalLocation(tz.getLocation(tzId));
+    deviceZone = (await FlutterTimezone.getLocalTimezone()).identifier;
   } catch (e) {
-    _log.warning('Time zone "$tzId" unavailable; using UTC', e);
-    tzId = 'UTC';
-    tz.setLocalLocation(tz.UTC);
+    _log.warning('Could not read the device time zone', e);
   }
+  final tzId = setLocalTimeZone(deviceZone);
+  if (tzId != deviceZone) _log.warning('Time zone "$deviceZone" unknown; using UTC');
 
   final container = ProviderContainer(overrides: [
     logSinkProvider.overrideWithValue(sink),

@@ -18,9 +18,7 @@ void main() {
   testWidgets('Start → come back → Finish → Red, with a real notification', (tester) async {
     final f = Fixture();
     await f.seedTree();
-    final c = containerFor(f, extra: [
-      notificationPortProvider.overrideWithValue(LocalNotificationPort(f.clock)),
-    ]);
+    final c = containerFor(f, notifications: LocalNotificationPort(f.clock));
     await c.read(notificationPortProvider).init((_) {});
     await tester.pumpWidget(UncontrolledProviderScope(container: c, child: const PrepBeltApp()));
     await tester.pumpAndSettle();
