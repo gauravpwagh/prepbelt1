@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:prep_core/prep_core.dart';
 
 import '../../core/format.dart';
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import '../../core/widgets/folder_chooser.dart';
 import '../../data/exchange/exam_importer.dart';
@@ -109,7 +110,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final preview = ref.watch(_previewProvider(widget.path));
     return Scaffold(
       appBar: AppBar(title: const Text('Import exam')),
-      body: switch (preview) {
+      body: ReadingWidth(child: switch (preview) {
         AsyncData(:final value) => _body(context, value),
         AsyncError(:final error) => Padding(
             padding: const EdgeInsets.all(24),
@@ -118,7 +119,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                 : 'Could not read the file: $error'),
           ),
         _ => const Center(child: CircularProgressIndicator()),
-      },
+      }),
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:prep_core/prep_core.dart';
 import '../../application/complete_onboarding.dart';
 import '../../core/format.dart';
 import '../../core/labels.dart';
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import '../../core/slots.dart';
 import '../../core/widgets/restore_flow.dart';
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body = const SizedBox.shrink();
       WidgetsBinding.instance.addPostFrameCallback((_) => _finish());
     }
-    return Scaffold(body: SafeArea(child: body));
+    return Scaffold(body: SafeArea(child: ReadingWidth(child: body)));
   }
 }
 

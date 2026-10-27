@@ -21,7 +21,7 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 
 ## Status
 
-All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 83 app tests pass, the coverage gate passes (application 89.8%), `check_imports` passes. CI on `main` is green.
+Milestones M1–M8 are implemented; M9 (iOS) is planned. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 88 app tests pass, the coverage gate passes (application 89.8%), `check_imports` passes. CI on `main` is green.
 
 | Milestone | State |
 | --- | --- |
@@ -33,7 +33,7 @@ All milestones M1–M7 are implemented. Local checks: `flutter analyze` clean, 1
 | M6 backups and catch-up | Done: routine/safety/pre-migration backups, restore, catch-up card. |
 | M6b exam files | Done: export, import with clash choices, copy as new attempt, archive and remove. |
 | M7 diagnostics | Done: rotating logs, crash.log, Share logs, Diagnostics, 5k-item seed. |
-| M8 adaptive layouts | Planned (plan items 106–111). |
+| M8 adaptive layouts | Done: window classes, navigation rail, two panes for Today and Library, reading width (plan items 106–111). |
 | M9 iOS | Planned (plan items 112–119); waits for the Android internal test and Open Questions 1–4. |
 
 ## Releasing

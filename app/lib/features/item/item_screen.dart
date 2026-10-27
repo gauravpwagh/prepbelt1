@@ -5,6 +5,7 @@ import 'package:prep_core/prep_core.dart';
 
 import '../../core/format.dart';
 import '../../core/labels.dart';
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import '../../core/sheets.dart';
 import '../../core/slots.dart';
@@ -54,7 +55,7 @@ class _ItemBody extends ConsumerWidget {
     );
     if (ok != true || !context.mounted) return;
     await ref.read(deleteItemProvider)(v.node.id);
-    if (context.mounted) context.pop();
+    if (context.mounted) closeItem(context, ref);
   }
 
   @override
@@ -83,7 +84,7 @@ class _ItemBody extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: ReadingWidth(child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
@@ -142,7 +143,7 @@ class _ItemBody extends ConsumerWidget {
                 title: Text(c.title),
                 subtitle: c.positionText == null ? null : Text(c.positionText!),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/item/${c.id}'),
+                onTap: () => openItem(context, ref, c.id),
               ),
           ],
           const SizedBox(height: 8),
@@ -179,7 +180,7 @@ class _ItemBody extends ConsumerWidget {
             HistoryList(v.explanation.recent),
           ],
         ],
-      ),
+      )),
     );
   }
 }

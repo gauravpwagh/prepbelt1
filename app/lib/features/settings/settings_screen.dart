@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
+import '../../core/layout.dart';
 import 'settings_providers.dart';
 import 'widgets/backup_section.dart';
 import 'widgets/source_folders_section.dart';
@@ -48,7 +49,7 @@ class SettingsScreen extends ConsumerWidget {
     final actions = ref.read(settingsActionsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: switch (view) {
+      body: ReadingWidth(child: switch (view) {
         AsyncData(:final value) => ListView(children: [
             ListTile(
               key: const Key('settings-minutes'),
@@ -93,7 +94,7 @@ class SettingsScreen extends ConsumerWidget {
           ]),
         AsyncError(:final error) => Center(child: Text('Could not load: $error')),
         _ => const Center(child: CircularProgressIndicator()),
-      },
+      }),
     );
   }
 }

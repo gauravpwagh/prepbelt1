@@ -11,6 +11,12 @@ typedef RowActionBuilder = Widget Function(BuildContext context, String nodeId,
 final planRowActionProvider =
     Provider<RowActionBuilder?>((ref) => null);
 
+/// The Item screen for [nodeId], shown in the right pane of Library and Today
+/// on expanded windows (design D14).
+typedef ItemDetailBuilder = Widget Function(String nodeId);
+
+final itemDetailProvider = Provider<ItemDetailBuilder?>((ref) => null);
+
 /// Cards shown on Today above the plan list (catch-up, backup banner).
 final todayBannersProvider = Provider<List<Widget>>((ref) => const []);
 

@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
 import '../../core/format.dart';
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import '../../core/sheets.dart';
 import '../../core/slots.dart';
 import '../../core/widgets/belt_chip.dart';
 import '../../core/widgets/minutes_text.dart';
+import '../../core/widgets/two_pane.dart';
 import 'today_providers.dart';
 import 'widgets/backup_banner.dart';
 import 'widgets/catch_up_card.dart';
@@ -19,28 +21,32 @@ class TodayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(todayViewProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Today'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh plan',
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(buildTodayPlanProvider).refresh(),
-          ),
-        ],
+    return TwoPane(
+      pane: 'today',
+      placeholder: 'Choose a plan row to see the item here',
+      list: Scaffold(
+        appBar: AppBar(
+          title: const Text('Today'),
+          actions: [
+            IconButton(
+              tooltip: 'Refresh plan',
+              icon: const Icon(Icons.refresh),
+              onPressed: () => ref.read(buildTodayPlanProvider).refresh(),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'fab-today',
+          tooltip: 'Add',
+          onPressed: () => context.push('/add'),
+          child: const Icon(Icons.add),
+        ),
+        body: switch (view) {
+          AsyncData(:final value) => _TodayBody(value),
+          AsyncError(:final error) => Center(child: Text('Could not build the plan: $error')),
+          _ => const Center(child: CircularProgressIndicator()),
+        },
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab-today',
-        tooltip: 'Add',
-        onPressed: () => context.push('/add'),
-        child: const Icon(Icons.add),
-      ),
-      body: switch (view) {
-        AsyncData(:final value) => _TodayBody(value),
-        AsyncError(:final error) => Center(child: Text('Could not build the plan: $error')),
-        _ => const Center(child: CircularProgressIndicator()),
-      },
     );
   }
 }
@@ -130,23 +136,27 @@ class PlanRowTile extends ConsumerWidget {
     };
     return ListTile(
       key: Key('plan-row-${r.node.id}'),
-      onTap: () => context.push('/item/${r.node.id}'),
+      selected: isOpenInPane(context, ref, r.node.id),
+      onTap: () => openItem(context, ref, r.node.id),
       leading: r.done
           ? const Icon(Icons.check_circle, color: Colors.green)
           : const Icon(Icons.radio_button_unchecked),
       title: Text(r.title,
           style: r.done ? const TextStyle(decoration: TextDecoration.lineThrough) : null),
-      subtitle: Row(children: [
-        BeltChip(r.state.belt, dense: true),
-        const SizedBox(width: 8),
-        MinutesText(r.entry.estimatedMinutes),
-        const SizedBox(width: 8),
-        Flexible(child: Text(reason, overflow: TextOverflow.ellipsis)),
-        if (r.node.positionText != null && r.node.positionText != r.node.title) ...[
-          const SizedBox(width: 8),
-          Flexible(child: Text(r.node.positionText!, overflow: TextOverflow.ellipsis)),
+      // Wraps instead of overflowing on narrow rows (small phones, the
+      // two-pane list).
+      subtitle: Wrap(
+        spacing: 8,
+        runSpacing: 2,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          BeltChip(r.state.belt, dense: true),
+          MinutesText(r.entry.estimatedMinutes),
+          Text(reason),
+          if (r.node.positionText != null && r.node.positionText != r.node.title)
+            Text(r.node.positionText!, overflow: TextOverflow.ellipsis),
         ],
-      ]),
+      ),
       trailing: r.done
           ? null
           : action?.call(context, r.node.id, unread: unread) ??

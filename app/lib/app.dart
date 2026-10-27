@@ -13,6 +13,7 @@ import 'core/theme/app_theme.dart';
 import 'data/integrity.dart';
 import 'features/capture/share_capture_sheet.dart';
 import 'features/grade/grade_sheet.dart';
+import 'features/item/item_screen.dart';
 import 'features/grade/studied_sheet.dart';
 import 'features/session/finish_sheet.dart';
 import 'features/session/start_button.dart';
@@ -29,6 +30,7 @@ final List<Override> appOverrides = [
   planRowActionProvider.overrideWithValue(
       (context, nodeId, {required unread}) => StartButton(nodeId: nodeId)),
   todayBannersProvider.overrideWithValue(const [SessionBanner()]),
+  itemDetailProvider.overrideWithValue((nodeId) => ItemScreen(nodeId: nodeId)),
   reminderChangedProvider
       .overrideWith((ref) => ref.read(reconcileNotificationsProvider).call),
 ];

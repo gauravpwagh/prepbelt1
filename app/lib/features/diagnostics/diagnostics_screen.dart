@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import 'diagnostics_providers.dart';
 
@@ -22,7 +23,7 @@ class DiagnosticsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Diagnostics')),
-      body: RefreshIndicator(
+      body: ReadingWidth(child: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(integrityProvider);
           ref.invalidate(deviceChecksProvider);
@@ -103,7 +104,7 @@ class DiagnosticsScreen extends ConsumerWidget {
             },
           ),
         ]),
-      ),
+      )),
     );
   }
 }

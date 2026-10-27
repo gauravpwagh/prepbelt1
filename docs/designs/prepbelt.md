@@ -985,12 +985,13 @@ Every row below is an implementation of an interface that already exists in `app
 *   **Window classes.** Read from `MediaQuery.sizeOf(context).width` in one place (`core/layout.dart`): compact < 600, medium 600–839, expanded ≥ 840 logical pixels.
 *   **Navigation.** Compact keeps the bottom `NavigationBar`. Medium and expanded use a `NavigationRail` with the same destinations, in the same `StatefulShellRoute`.
 *   **Two panes (expanded).**
-    *   **Library:** the tree on the left (360–420 dp wide); the selected item's screen on the right. Selecting a row shows the item instead of pushing `/item/:id`, and the URL still becomes `/library/item/:id` so that back and deep links work.
+    *   **Library:** the tree on the left (400 dp wide); the selected item's screen on the right. Selecting a row shows the item instead of pushing `/item/:id`. The selection is screen state, kept per tab, not a route; `/item/:id` and notification routes are unchanged.
     *   **Today:** the plan list on the left, the selected item on the right. Start, the Finish sheet and the Grade sheet behave as on the phone.
+    *   Inside the right pane, opening a child item replaces the pane, and deleting the item clears it.
     *   With nothing selected, the right pane shows a short hint.
-    *   On a resize to compact, a selected item becomes a pushed Item screen; on a resize back, it returns to the right pane.
+    *   On a resize below expanded, a selected item becomes a pushed Item screen, and Back returns to the list. A pushed Item screen stays pushed when the window grows again.
 *   **Reading width.** Forms, Settings, Exams, Diagnostics and onboarding are centred, with a maximum content width of 640 dp.
-*   **Sheets.** Bottom sheets stay bottom sheets, with a maximum width of 640 dp. Dialogs keep their Material size.
+*   **Sheets.** Bottom sheets stay bottom sheets, with Material 3's default maximum width of 640 dp. Dialogs keep their Material size.
 *   **Orientation.** Both orientations on every device. The app does not lock orientation.
 *   **Input.** Hardware keyboards and pointers work through the Material widgets' defaults. Enter submits Quick add.
 

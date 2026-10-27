@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
 import '../../core/widgets/rollup_bar.dart';
+import '../../core/widgets/two_pane.dart';
 import 'library_providers.dart';
 import 'widgets/node_tile.dart';
 
@@ -13,19 +14,23 @@ class LibraryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(libraryViewProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Library')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab-library',
-        tooltip: 'Add',
-        onPressed: () => context.push('/add'),
-        child: const Icon(Icons.add),
+    return TwoPane(
+      pane: 'library',
+      placeholder: 'Choose an item to see it here',
+      list: Scaffold(
+        appBar: AppBar(title: const Text('Library')),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'fab-library',
+          tooltip: 'Add',
+          onPressed: () => context.push('/add'),
+          child: const Icon(Icons.add),
+        ),
+        body: switch (view) {
+          AsyncData(:final value) => _LibraryBody(value),
+          AsyncError(:final error) => Center(child: Text('Could not load: $error')),
+          _ => const Center(child: CircularProgressIndicator()),
+        },
       ),
-      body: switch (view) {
-        AsyncData(:final value) => _LibraryBody(value),
-        AsyncError(:final error) => Center(child: Text('Could not load: $error')),
-        _ => const Center(child: CircularProgressIndicator()),
-      },
     );
   }
 }

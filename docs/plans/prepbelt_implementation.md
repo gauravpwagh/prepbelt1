@@ -673,11 +673,14 @@ Each feature has its own screens or sheets, providers and widgets, with the cont
 
 ### M8: adaptive layouts (design D14, §13)
 
-106. **`app/lib/core/layout.dart`** (Create): `WindowClass { compact, medium, expanded }` and `windowClassOf(context)` from `MediaQuery.sizeOf(context).width` (600 and 840 logical pixels). The only place that reads the breakpoints. Also `ReadingWidth`, which centres a child at 640 dp at most.
-107. **`app/lib/router.dart`** (Modify): `HomeShell` shows a `NavigationBar` when compact and a `NavigationRail` otherwise, with the same branches. Adds `/library/item/:id` and `/today/item/:id` inside their branches for the two-pane layout.
-108. **`app/lib/core/widgets/two_pane.dart`** (Create): `TwoPane(list, detail, placeholder)`. Expanded shows both; otherwise only the list, and a selection pushes `/item/:id`. A resize keeps the selection.
-109. **`features/library` and `features/today`** (Modify): use `TwoPane`; a row tap selects instead of pushing when expanded. The Item screen gets an `embedded` mode without its own app bar.
-110. **Forms and settings** (Modify): onboarding, Add, Split, Exams, Import, Settings and Diagnostics are wrapped in `ReadingWidth`; bottom sheets get `constraints: BoxConstraints(maxWidth: 640)`.
+106. **`app/lib/core/layout.dart`** (Create): `WindowClass { compact, medium, expanded }` and `windowClassOf(context)` from `MediaQuery.sizeOf(context).width` (600 and 840 logical pixels). The only place that reads the breakpoints. Also:
+    *   `ReadingWidth`, which centres a child at 640 dp at most;
+    *   `selectedItemProvider` (a family by pane name) and the `ItemPane` inherited widget;
+    *   `openItem` (select in the pane when expanded, else push `/item/:id`), `closeItem` (clear the pane, else pop) and `isOpenInPane` (row highlight).
+107. **`app/lib/router.dart`** (Modify): `HomeShell` shows a `NavigationBar` when compact and a `NavigationRail` otherwise, with the same branches. No new routes.
+108. **`app/lib/core/widgets/two_pane.dart`** (Create): `TwoPane(pane, list, placeholder)`. Expanded shows both, with the Item screen from the `itemDetailProvider` slot (`core/slots.dart`, filled in `app.dart`, so Library and Today never import the item feature). Otherwise only the list; a selection left over from a wider window is pushed as `/item/:id` and cleared.
+109. **`features/library`, `features/today` and `features/item`** (Modify): Library and Today wrap their scaffolds in `TwoPane`; row taps call `openItem` and rows show `selected`. In the Item screen, child taps call `openItem` and Delete calls `closeItem`.
+110. **Forms and settings** (Modify): the bodies of onboarding, Add, Split, Item, Exams, Import, Settings and Diagnostics are wrapped in `ReadingWidth`. Bottom sheets already stop at 640 dp in Material 3.
 111. **`app/test/features/layout_test.dart`** (Create): the shell, Today, Library and Item at 390 × 844, 800 × 1280 and 1280 × 800; rail versus bar; one or two panes; the selection survives a resize.
 
 ### M9: iOS (design D13, §13)

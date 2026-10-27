@@ -5,6 +5,7 @@ import 'package:prep_core/prep_core.dart';
 
 import '../../application/add_item.dart';
 import '../../core/labels.dart';
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import '../../data/db/app_database.dart';
 import 'capture_providers.dart';
@@ -32,7 +33,7 @@ class AddItemScreen extends ConsumerWidget {
     final data = ref.watch(addFormDataProvider(parentId));
     return Scaffold(
       appBar: AppBar(title: const Text('Add')),
-      body: switch (data) {
+      body: ReadingWidth(child: switch (data) {
         AsyncData(:final value) => _AddForm(
             data: value,
             subjectId: subjectId,
@@ -41,7 +42,7 @@ class AddItemScreen extends ConsumerWidget {
           ),
         AsyncError(:final error) => Center(child: Text('Could not load: $error')),
         _ => const Center(child: CircularProgressIndicator()),
-      },
+      }),
     );
   }
 }

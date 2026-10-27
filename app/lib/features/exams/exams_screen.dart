@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import 'archive_sheet.dart';
 import 'exam_form.dart';
@@ -31,7 +32,7 @@ class ExamsScreen extends ConsumerWidget {
         label: const Text('Exam'),
         onPressed: () => showExamForm(context),
       ),
-      body: switch (view) {
+      body: ReadingWidth(child: switch (view) {
         AsyncData(:final value) => value.exams.isEmpty
             ? const Center(child: Text('No exams yet'))
             : ListView(
@@ -40,7 +41,7 @@ class ExamsScreen extends ConsumerWidget {
               ),
         AsyncError(:final error) => Center(child: Text('Could not load: $error')),
         _ => const Center(child: CircularProgressIndicator()),
-      },
+      }),
     );
   }
 }

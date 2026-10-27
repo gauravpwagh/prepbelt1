@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
+import 'core/layout.dart';
 import 'core/providers.dart';
 import 'features/capture/add_item_screen.dart';
 import 'features/capture/split_sheet.dart';
@@ -85,22 +86,55 @@ final routerProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
+/// The four destinations: a bottom bar on compact windows, a navigation rail
+/// otherwise (design D14, plan item 107).
 class HomeShell extends StatelessWidget {
   const HomeShell(this.shell, {super.key});
   final StatefulNavigationShell shell;
 
+  static const _destinations = [
+    (Icons.today_outlined, 'Today'),
+    (Icons.account_tree_outlined, 'Library'),
+    (Icons.event_note_outlined, 'Exams'),
+    (Icons.settings_outlined, 'Settings'),
+  ];
+
+  void _go(int i) => shell.goBranch(i, initialLocation: i == shell.currentIndex);
+
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    if (windowClassOf(context) == WindowClass.compact) {
+      return Scaffold(
         body: shell,
         bottomNavigationBar: NavigationBar(
           selectedIndex: shell.currentIndex,
-          onDestinationSelected: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.today_outlined), label: 'Today'),
-            NavigationDestination(icon: Icon(Icons.account_tree_outlined), label: 'Library'),
-            NavigationDestination(icon: Icon(Icons.event_note_outlined), label: 'Exams'),
-            NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          onDestinationSelected: _go,
+          destinations: [
+            for (final (icon, label) in _destinations)
+              NavigationDestination(icon: Icon(icon), label: label),
           ],
         ),
       );
+    }
+    return Scaffold(
+      body: Row(children: [
+        SafeArea(
+          right: false,
+          child: NavigationRail(
+            selectedIndex: shell.currentIndex,
+            onDestinationSelected: _go,
+            labelType: NavigationRailLabelType.all,
+            destinations: [
+              for (final (icon, label) in _destinations)
+                NavigationRailDestination(icon: Icon(icon), label: Text(label)),
+            ],
+          ),
+        ),
+        const VerticalDivider(width: 1),
+        Expanded(
+          child: MediaQuery.removePadding(context: context, removeLeft: true, child: shell),
+        ),
+      ]),
+    );
+  }
 }

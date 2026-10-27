@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prep_core/prep_core.dart';
 
+import '../../core/layout.dart';
 import '../../core/providers.dart';
 import 'split_fields.dart';
 
@@ -39,7 +40,7 @@ class _SplitScreenState extends ConsumerState<SplitScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Split into chapters')),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
+        body: ReadingWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
           const Text('Each part becomes an Unread subtask with its own position and '
               'the default base time. Subtasks share the task\'s source.'),
           const SizedBox(height: 16),
@@ -50,6 +51,6 @@ class _SplitScreenState extends ConsumerState<SplitScreen> {
             onPressed: _saving || _spec == null ? null : _save,
             child: const Text('Split'),
           ),
-        ]),
+        ])),
       );
 }
