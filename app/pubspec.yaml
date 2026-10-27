@@ -1,7 +1,7 @@
 name: prepbelt
 description: Offline exam prep with spaced review and belts.
 publish_to: none
-version: 0.1.0+1
+version: 0.1.0+2
 resolution: workspace
 
 environment:

@@ -36,6 +36,15 @@ Share a PDF, a web page or an AI chat link to PrepBelt from any app. Split a boo
 **Yours, on your phone**
 No account, no ads, no internet permission. Daily backups go to a folder you choose. Export an exam to share its syllabus with a friend, or move it to a new phone with its progress.
 
+## Release notes: 0.1.0 build 2 (internal testing)
+
+* Today now has three sections: Due now, Up next and Coming up. Nothing is hidden; a dashed line shows what fits your daily minutes.
+* Split as I go: name each part of a book or PDF when you finish studying it.
+* Move items, delete with their children kept in the Inbox (with Undo), and rename or delete subjects.
+* Create a subject or topic right where you pick it.
+
+Your data is upgraded automatically, with a backup taken first.
+
 ## Release notes: 0.1.0 (internal testing)
 
 First internal test build.
