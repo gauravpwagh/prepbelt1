@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../application/add_item.dart';
 import '../../core/providers.dart';
+import '../../core/widgets/new_subject_dialog.dart';
+import '../../data/db/app_database.dart';
 import 'capture_providers.dart';
 
 /// Quick add: a title and one tap (design §10). The last-used subject is
@@ -25,6 +27,18 @@ class QuickAddSheet extends ConsumerStatefulWidget {
 class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   final _title = TextEditingController();
   String? _subjectId;
+
+  /// Subjects created from this sheet.
+  final _newSubjects = <SubjectRow>[];
+
+  Future<void> _newSubject() async {
+    final s = await showNewSubjectDialog(context);
+    if (s == null || !mounted) return;
+    setState(() {
+      _newSubjects.add(s);
+      _subjectId = s.id;
+    });
+  }
 
   @override
   void dispose() {
@@ -67,12 +81,18 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
                 ),
                 const SizedBox(height: 8),
                 Wrap(spacing: 8, children: [
-                  for (final s in value.subjects)
+                  for (final s in [...value.subjects, ..._newSubjects])
                     ChoiceChip(
                       label: Text(s.name),
                       selected: selected == s.id,
                       onSelected: (_) => setState(() => _subjectId = s.id),
                     ),
+                  ActionChip(
+                    key: const Key('quick-new-subject'),
+                    avatar: const Icon(Icons.add, size: 18),
+                    label: const Text('New'),
+                    onPressed: _newSubject,
+                  ),
                 ]),
                 const SizedBox(height: 8),
                 Row(children: [

@@ -11,6 +11,7 @@ import '../application/capture_shared.dart';
 import '../application/catch_up.dart';
 import '../application/complete_onboarding.dart';
 import '../application/delete_item.dart';
+import '../application/move_item.dart';
 import '../application/discard_session.dart';
 import '../application/exam_exchange.dart';
 import '../application/explain_due.dart';
@@ -127,8 +128,12 @@ final splitItemProvider = Provider<SplitItem>((ref) => SplitItem(
     newId: ref.watch(idGeneratorProvider),
     now: _now(ref)));
 
-final deleteItemProvider = Provider<DeleteItem>(
-    (ref) => DeleteItem(ref.watch(appDatabaseProvider), now: _now(ref)));
+final deleteItemProvider = Provider<DeleteItem>((ref) => DeleteItem(
+    ref.watch(appDatabaseProvider),
+    newId: ref.watch(idGeneratorProvider),
+    now: _now(ref)));
+
+final moveItemProvider = Provider<MoveItem>((ref) => MoveItem(ref.watch(appDatabaseProvider)));
 
 final explainDueProvider = Provider<ExplainDue>((ref) =>
     ExplainDue(ref.watch(appDatabaseProvider), ref.watch(localDayClockProvider)));

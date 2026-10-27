@@ -3,6 +3,7 @@
 *   **Author:** vijwagh31@gmail.com
 *   **Status:** Approved for implementation. Goldfish review round 1, the re-check and a focused review of §8a (exam export and import) are all resolved. D12 was added during M1.
 *   **Amendment (2026-10-27):** iOS and tablet layouts brought into scope by the author (D13, D14, §13, M8, M9). The amendment's open questions are listed below; it has not had a Goldfish review yet.
+*   **Amendment (2026-10-27, second):** organising items brought into scope by the author (D15, §10a, CUJ 13, M10): move, delete that can keep children, subject rename and delete, and creating a subject or topic where it is picked. Not yet reviewed.
 *   **Date:** 2026-10-26
 *   **Predecessor:** [concepts_brief.md](../../claude/concepts_brief.md)
 *   **Implementation plan:** [docs/plans/prepbelt_implementation.md](../plans/prepbelt_implementation.md)
@@ -37,6 +38,9 @@ Nothing leaves the phone except files the user creates on purpose: backups saved
 
 | Term | Meaning |
 | --- | --- |
+| **Subject** | A field of study, such as Polity. Linked to any number of exams, including none; the link is where an item's deadline comes from. |
+| **Topic** | An optional folder at the top of a subject. It only groups tasks: no belt, never planned. |
+| **Task / subtask** | One thing to study, with a kind and a base time. A subtask is a part of a task, for example a chapter after a split. The hierarchy is subject → topic (optional) → task → subtask. |
 | **Item / node** | Anything below a subject: a topic, task or subtask. |
 | **Reviewable item** | A task with no subtasks, or a subtask. Only these get belts and reviews. |
 | **Planned / Unread** | The same state: added but not yet studied. The belt is `unread`. |
@@ -47,7 +51,7 @@ Nothing leaves the phone except files the user creates on purpose: backups saved
 | **Effective due** | The ladder due date with the exam cap applied when it is read (§3). This is the date the user sees. It is never stored. |
 | **Review share / reserve** | The two parts of the daily budget: minutes for reviews, and minutes kept for first readings (§4). |
 | **Waiting** | Due reviews that did not fit today's review share. Today shows them as one count line. |
-| **Inbox** | A built-in subject that holds quick captures and items shared from other apps that are not yet filed. It is linked to no exam and is left out of the plan. |
+| **Inbox** | A built-in subject that holds quick captures, items shared from other apps, and the children of deleted items, until they are filed. It is linked to no exam and is left out of the plan. It cannot be renamed or deleted. |
 | **Study day** | The local date, where the day starts at the day-start hour (default 4 AM). |
 
 --------------------------------------------------------------------------------
@@ -186,6 +190,12 @@ These are out of scope for version 1. Where later support needs data, that data 
     *   **Medium (600–839 dp):** a navigation rail replaces the bottom bar, and content is centred with a maximum width.
     *   **Expanded (≥ 840 dp):** the rail, plus two panes for Library and Today: the list on the left and the selected item on the right.
     *   Behaviour, routes and data are unchanged; only presentation differs (§13).
+*   **D15: Items can be moved and deleted freely, and subjects are made where they are picked** (author decision, 2026-10-27). Rules in §10a.
+    *   **Move.** Any topic, task or subtask moves with everything under it. History and belts stay.
+    *   **Delete asks.** Deleting an item that has children asks, with no default: delete only the item and move its children to the Inbox, or delete everything under it. Every delete can be undone from the snackbar.
+    *   **Subjects.** Subjects can be renamed and deleted from the Library. Deleting one asks whether its items move to the Inbox or are deleted too.
+    *   **Create in place.** The Add form offers "+ New subject…" and "+ New topic…" in its menus, and the Quick add and Share sheets offer a "New" chip. A new subject can be linked to exams there, or to none.
+    *   **Exams are unchanged.** An exam is still removed only by Archive → Export and remove (§8a).
 
 ## Open Questions
 
@@ -381,6 +391,18 @@ These belong to the 2026-10-27 amendment (D13, D14). Each has a proposed answer.
     *   **Subjects already present.** IDs are decided per subject. For example, if Polity came over earlier with another exam, the new exam is simply linked to the existing Polity. Polity's items and history in the file are skipped, so nothing is duplicated.
     *   **Other ID clashes.** If some other subject's IDs clash, only that subject is copied, with new IDs.
     *   **PDF sources** arrive as "not linked", with their file names. "Re-link by folder" connects them.
+
+### CUJ 13: File the Inbox and tidy the Library
+
+*   **Given**: three shared AI chats sit in the Inbox, and a task "Labour codes" has four subtasks.
+*   **When**: the user does the following:
+    1.  Opens a shared chat, taps **Move…** and picks the topic "Labour laws" under the subject "Economy".
+    2.  Taps **Add**, opens the subject menu and picks **+ New subject…**, names it "Labour codes", ticks the exam "MPSC Prelims" and saves the item.
+    3.  Opens the task "Labour codes" and taps **Delete → Delete only this**.
+*   **Then**:
+    *   The chat leaves the Inbox, joins today's planning and is capped by the exams of "Economy".
+    *   The new subject is created and selected without leaving the Add form, and it is linked to MPSC Prelims.
+    *   The four subtasks become tasks in the Inbox, with the task's source and their belts. The snackbar offers Undo.
 
 ### CUJ 12: Archive a finished exam to a file
 
@@ -915,10 +937,10 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | --- | --- |
 | Onboarding | Start fresh or Restore; exam, subject, daily minutes, first item; permissions; battery explainer |
 | Today | Plan list (title, belt chip, minutes, Start), summary line, waiting line, catch-up prompt / Undo catch-up, backup banner, Refresh |
-| Library | Exam filter; subject → topic/task/subtask tree with "Weakest: X · n/N Green" and a stacked bar; Inbox section |
-| Item | Details, source card (open / re-link / location note), "Why is this due?", last 5 events, Undo latest |
-| Add / Quick add | Title + up to 3 taps (last-used subject and topic preselected); full form; split tool (only for tasks with no history); in-app folder browser |
-| Share capture sheet | Opens when content is shared to PrepBelt; pre-filled title, source preview, subject (Inbox by default), Save |
+| Library | Exam filter; subject → topic/task/subtask tree with "Weakest: X · n/N Green" and a stacked bar; Inbox section; a menu per subject (Rename, Delete subject); New subject |
+| Item | Details, source card (open / re-link / location note), "Why is this due?", last 5 events, Undo latest; menu with Move… and Delete |
+| Add / Quick add | Title + up to 3 taps (last-used subject and topic preselected); full form with "+ New subject…" and "+ New topic…"; a "New" subject chip in Quick add; split tool (only for tasks with no history); in-app folder browser |
+| Share capture sheet | Opens when content is shared to PrepBelt; pre-filled title, source preview, subject (Inbox by default) with a "New" chip, Save |
 | Finish sheet | Editable minutes, "Did you finish?" when stale, Discard |
 | Grade sheet | Forgot / Shaky / Solid, each with its definition and next date; PYQ line; drop message |
 | Exams | Create, edit and link subjects; Archive (keep in app) or Archive → Export and remove; Export (Structure only / With progress, with an "Include notes and excerpts" switch); Import; Copy as new attempt |
@@ -931,6 +953,33 @@ This runs a structure-mode export and import in memory, with the new exam name a
 *   **Forgot** — "Couldn't recall the main points."
 *   **Shaky** — "Recalled some, with gaps or after peeking."
 *   **Solid** — "Could explain it without looking."
+
+### 10a. Organising items (D15)
+
+**Move** (`MoveItem`). The Item screen's menu opens a picker of every allowed place, with the current one marked "Here now".
+
+*   A topic goes to the top of a subject.
+*   A task goes to the top of a subject or under a topic.
+*   A subtask goes under another task, or to the top of a subject or under a topic. In the second case it becomes a task, and it gets a copy of its old task's source, which it used to inherit.
+*   A task can't gain subtasks once it has review history (`canAddChild`); such tasks are shown greyed out. A task never moves under another task.
+*   The item moves with everything under it, live or deleted, and goes after its new siblings. Its events, belt and `item_state` are untouched. Only the deadline can change, because the exam cap is read from the new subject's exams (§3). Moving into the Inbox takes an item out of the plan, and moving out of it brings the item in.
+
+**Delete** (`DeleteItem`). Deletes are soft (`deleted_at`), as before, so history stays.
+
+*   An item without children: one confirmation.
+*   An item with children asks, with no default:
+    *   **Delete only this.** Its live children move to the top of the Inbox. A topic's tasks keep their subtasks. A task's subtasks become tasks, each with a copy of the task's source.
+    *   **Delete everything.** The item and every live descendant are soft-deleted.
+*   **Undo.** The snackbar offers Undo, which writes back every changed row as it was and removes the copied sources. Today's plan is refreshed after a delete and after an Undo.
+
+**Subjects** (`SaveExam`).
+
+*   **Create.** `createSubject(name, examIds)`: from the Exams form, the Library's New subject row, the Add form's "+ New subject…" and the "New" chip of the Quick add and Share sheets. The dialog asks for a name and, optionally, the exams to link it to. The Add form's "+ New topic…" creates a topic in the chosen subject.
+*   **Rename.** From the Library subject menu.
+*   **Delete** asks, with no default: **Move items to Inbox** (topics, tasks and subtasks keep their shape) or **Delete items too** (soft-deleted). Either way every row of the subject, deleted rows included, is filed under the Inbox so that the subject row can go and history stays. The subject's exam links are removed, and `last_used_subject_id` and `last_used_topic_id` are cleared if they pointed to it. A subject delete has no Undo.
+*   The Inbox can't be renamed or deleted.
+
+**No events are written** by any of these; `review_events` stays append-only.
 
 ### 11. Logging
 
@@ -954,6 +1003,7 @@ This runs a structure-mode export and import in memory, with the new exam name a
 | ExamPackage | Round trip in both modes; remapping of references, `undoes_event_id` and `batch_id`; per-subject ID decision (existing subject linked and skipped; clean subject keeps IDs; clashing subject copied); every `validate` rule; newer format version; privacy fields dropped when notes are off; "add to existing" moves `sort_order` and never targets the Inbox; first free name; Copy as new attempt never merges; `item_state` after import equals the source phone's state |
 | Archive and remove | Shared subjects survive; unshared subjects and their data (including sessions) are removed; nothing is deleted if the export or the read-back check fails; blocked by an open session or a missing backup folder; `last_used_*` cleared |
 | Widgets | Today, Grade sheet, Finish sheet, Library label, Share capture sheet, Import screen |
+| Organising (D15) | Move rules for each kind, the history rule and the copied source; delete only this (subtasks become Inbox tasks, a topic's tasks stay whole) and delete everything; Undo puts every row back; subject create with exams, rename, and delete keeping or dropping items, with the Inbox protected; widget tests of "+ New subject…", the Delete choices with Undo, Move… and the subject menu |
 | Device | Emulator integration tests on API 26 and API 36: session start → finish, backup → restore. Kill-and-relaunch is a manual release check |
 | Layouts (D14) | Widget tests of the shell, Today, Library and Item at 390 × 844, 800 × 1280 and 1280 × 800: the bottom bar or rail, one or two panes, and the selected item kept across a resize |
 | iOS (D13) | The same unit and widget tests on a macOS CI runner; integration tests on an iOS simulator; manual checks of folder access, Share Extension, notifications and restore on a real iPhone |
@@ -1346,6 +1396,7 @@ Each entry records a rejected option and why it was rejected. Reopen one only if
 | M7 | Diagnostics, logging, Share logs, performance pass | Goals 10, 11 |
 | M8 | Adaptive layouts: window classes, navigation rail, two panes for Library and Today, reading width (D14) | Every CUJ on a tablet, a foldable and in split screen |
 | M9 | iOS: project, Swift folder channel, Quick Look opener, Share Extension, notifications, privacy manifest, macOS CI (D13) | Every CUJ on iPhone and iPad, except the live timer outside the app |
+| M10 | Organising items: move, delete with orphans to the Inbox and Undo, subject rename and delete, subjects and topics created where they are picked (D15) | CUJ 13 |
 
 The file-by-file plan, conventions and verification commands are in the [implementation plan](../plans/prepbelt_implementation.md).
 

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:prep_core/prep_core.dart';
 
 import '../data/db/app_database.dart';
+import 'delete_item.dart';
 
 /// Creates or edits an exam and its subject links, and creates subjects.
 class SaveExam {
@@ -41,8 +42,10 @@ class SaveExam {
       _db.examsDao.updateExam(
           id, ExamsCompanion(archivedAt: Value(archived ? _now() : null)));
 
-  /// Creates a subject, sorted after the existing ones; returns its ID.
-  Future<String> createSubject(String name) => _db.transaction(() async {
+  /// Creates a subject, sorted after the existing ones and linked to
+  /// [examIds]; returns its ID.
+  Future<String> createSubject(String name, {Set<String> examIds = const {}}) =>
+      _db.transaction(() async {
         final id = _newId();
         await _db.subjectsDao.insertSubject(SubjectsCompanion.insert(
           id: id,
@@ -50,8 +53,47 @@ class SaveExam {
           sortOrder: await _db.subjectsDao.nextSortOrder(),
           createdAt: _now(),
         ));
+        for (final e in examIds) {
+          await _db.subjectsDao.link(e, id);
+        }
         return id;
       });
+
+  /// Renames a subject. The Inbox keeps its name.
+  Future<void> renameSubject(String id, String name) => _db.transaction(() async {
+        final s = await _subject(id);
+        await _db.subjectsDao.updateSubject(s.id, SubjectsCompanion(name: Value(_name(name))));
+      });
+
+  /// Deletes a subject (design §10a). With [keepItems] its items move to the
+  /// top of the Inbox with their topics, tasks and history; otherwise they
+  /// are soft-deleted. Either way every row of the subject, deleted ones
+  /// included, is filed under the Inbox so that its history stays, and the
+  /// subject's exam links go.
+  Future<void> deleteSubject(String id, {required bool keepItems}) => _db.transaction(() async {
+        final s = await _subject(id);
+        final inbox = await _db.subjectsDao.ensureInbox(newId: _newId, now: _now());
+        if (!keepItems) {
+          for (final r in await _db.nodesDao.roots(s.id)) {
+            await _db.nodesDao.softDelete(r.id, _now());
+          }
+        }
+        for (final r in await _db.nodesDao.allRoots(s.id)) {
+          await refile(_db, r, subjectId: inbox.id, parentId: null, kind: r.kind);
+        }
+        await _db.subjectsDao.deleteSubject(s.id);
+        if (await _db.settingsDao.lastUsedSubjectId() == s.id) {
+          await _db.settingsDao.setLastUsedSubjectId(null);
+          await _db.settingsDao.setLastUsedTopicId(null);
+        }
+      });
+
+  Future<SubjectRow> _subject(String id) async {
+    final s = await _db.subjectsDao.byId(id);
+    if (s == null) throw StateError('No subject $id');
+    if (s.isInbox) throw StateError('The Inbox cannot be renamed or deleted');
+    return s;
+  }
 
   Future<void> _link(String examId, Set<String> subjectIds) async {
     for (final s in subjectIds) {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/capture_shared.dart';
 import '../../core/labels.dart';
 import '../../core/providers.dart';
+import '../../core/widgets/new_subject_dialog.dart';
 import '../../data/db/app_database.dart';
 import '../../platform/share_receiver.dart';
 
@@ -47,6 +48,18 @@ class _ShareCaptureSheetState extends ConsumerState<ShareCaptureSheet> {
   late final List<CaptureDraft> _drafts = ref.read(captureSharedProvider).drafts(widget.share);
   String? _subjectId;
   var _saving = false;
+
+  /// Subjects created from this sheet.
+  final _newSubjects = <SubjectRow>[];
+
+  Future<void> _newSubject() async {
+    final s = await showNewSubjectDialog(context);
+    if (s == null || !mounted) return;
+    setState(() {
+      _newSubjects.add(s);
+      _subjectId = s.id;
+    });
+  }
 
   Future<void> _save(String inboxId) async {
     setState(() => _saving = true);
@@ -105,13 +118,19 @@ class _ShareCaptureSheetState extends ConsumerState<ShareCaptureSheet> {
                     ),
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, children: [
-                    for (final s in list)
+                    for (final s in [...list, ..._newSubjects])
                       ChoiceChip(
                         key: Key('share-subject-${s.id}'),
                         label: Text(s.name),
                         selected: (_subjectId ?? inboxId) == s.id,
                         onSelected: (_) => setState(() => _subjectId = s.id),
                       ),
+                    ActionChip(
+                      key: const Key('share-new-subject'),
+                      avatar: const Icon(Icons.add, size: 18),
+                      label: const Text('New'),
+                      onPressed: _newSubject,
+                    ),
                   ]),
                   const SizedBox(height: 12),
                   FilledButton(

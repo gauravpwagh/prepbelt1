@@ -26,6 +26,25 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
   Future<void> updateNode(String id, StudyNodesCompanion changes) =>
       (update(studyNodes)..where((n) => n.id.equals(id))).write(changes);
 
+  /// Writes [row] back whole (undo of a move or delete).
+  Future<void> replaceNode(NodeRow row) => update(studyNodes).replace(row);
+
+  /// [id] and every descendant, live or not.
+  Future<List<NodeRow>> subtree(String id) => _subtree(id, live: false);
+
+  /// [id] and every live descendant, when [id] itself is live.
+  Future<List<NodeRow>> liveSubtree(String id) => _subtree(id, live: true);
+
+  Future<List<NodeRow>> _subtree(String id, {required bool live}) => customSelect(
+        'WITH RECURSIVE sub(id) AS ('
+        ' SELECT id FROM study_nodes WHERE id = ?1${live ? ' AND deleted_at IS NULL' : ''}'
+        ' UNION ALL SELECT n.id FROM study_nodes n JOIN sub ON n.parent_id = sub.id'
+        '${live ? ' WHERE n.deleted_at IS NULL' : ''}'
+        ') SELECT n.* FROM study_nodes n JOIN sub ON n.id = sub.id',
+        variables: [Variable.withString(id)],
+        readsFrom: {studyNodes},
+      ).asyncMap(studyNodes.mapFromRow).get();
+
   /// Soft-deletes [id] and every live descendant.
   Future<void> softDelete(String id, DateTime at) => customUpdate(
         'WITH RECURSIVE sub(id) AS ('
@@ -62,6 +81,11 @@ class NodesDao extends DatabaseAccessor<AppDatabase> with _$NodesDaoMixin {
   Future<List<NodeRow>> roots(String subjectId) =>
       _ordered((n) => n.subjectId.equals(subjectId) & n.parentId.isNull())
           .get();
+
+  /// Top-level nodes of [subjectId], deleted ones included.
+  Future<List<NodeRow>> allRoots(String subjectId) => (select(studyNodes)
+        ..where((n) => n.subjectId.equals(subjectId) & n.parentId.isNull()))
+      .get();
 
   /// The next `sort_order` among the siblings of a new node (live or not).
   Future<int> nextSortOrder(String subjectId, String? parentId) async {

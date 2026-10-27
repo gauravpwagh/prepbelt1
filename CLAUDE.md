@@ -4,7 +4,7 @@ Context for Claude Code working in this repository. Read this first.
 
 ## What this is
 
-PrepBelt is an offline Android app, built in Flutter, for competitive-exam preparation. iOS (iPhone and iPad) and tablet layouts are in scope as milestones M8 and M9 (design D13, D14, §13); the design's open questions for them need the author's answers before M9. It does four things:
+PrepBelt is an offline Android app, built in Flutter, for competitive-exam preparation. iOS (iPhone and iPad) and tablet layouts are in scope as milestones M8 and M9 (design D13, D14, §13); the design's open questions for them need the author's answers before M9. Organising items (move, delete with orphans to the Inbox, subjects made where they are picked) is M10 (D15, §10a). It does four things:
 
 *   tracks study items under exams and subjects;
 *   schedules reviews on a fixed belt ladder, capped by exam dates;
@@ -21,7 +21,7 @@ The design came out of the Elephant-Goldfish Model (EGM) process: a brainstorm, 
 
 ## Status
 
-Milestones M1–M8 are implemented; M9 (iOS) is planned. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 88 app tests pass, the coverage gate passes (application 89.8%), `check_imports` passes. CI on `main` is green.
+Milestones M1–M8 and M10 are implemented; M9 (iOS) is planned. Local checks: `flutter analyze` clean, 145 `prep_core` tests and 97 app tests pass, the coverage gate passes (application 90.2%), `check_imports` passes. CI on `main` is green.
 
 | Milestone | State |
 | --- | --- |
@@ -35,6 +35,7 @@ Milestones M1–M8 are implemented; M9 (iOS) is planned. Local checks: `flutter 
 | M7 diagnostics | Done: rotating logs, crash.log, Share logs, Diagnostics, 5k-item seed. |
 | M8 adaptive layouts | Done: window classes, navigation rail, two panes for Today and Library, reading width (plan items 106–111). |
 | M9 iOS | Planned (plan items 112–119); waits for the Android internal test and Open Questions 1–4. |
+| M10 organising items | Done: move, delete only this / everything with Undo, subject rename and delete, "+ New subject…" and "+ New topic…" in place (plan items 120–126). |
 
 ## Releasing
 

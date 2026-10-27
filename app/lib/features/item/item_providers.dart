@@ -43,7 +43,15 @@ final itemViewProvider = StreamProvider.autoDispose.family<ItemView?, String>((r
   final explain = ref.watch(explainDueProvider);
   return watchTables(
     db,
-    {db.studyNodes, db.reviewEvents, db.itemStates, db.nodeSources, db.exams, db.examSubjects},
+    {
+      db.studyNodes,
+      db.reviewEvents,
+      db.itemStates,
+      db.nodeSources,
+      db.subjects,
+      db.exams,
+      db.examSubjects,
+    },
     () async {
       final node = await db.nodesDao.byId(id);
       if (node == null || node.deletedAt != null) return null;

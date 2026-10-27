@@ -7,6 +7,7 @@ import '../../application/add_item.dart';
 import '../../core/labels.dart';
 import '../../core/layout.dart';
 import '../../core/providers.dart';
+import '../../core/widgets/new_subject_dialog.dart';
 import '../../data/db/app_database.dart';
 import 'capture_providers.dart';
 import 'source_picker_sheet.dart';
@@ -47,6 +48,9 @@ class AddItemScreen extends ConsumerWidget {
   }
 }
 
+/// The menu value of "+ New subject…" and "+ New topic…".
+const _newValue = '__new__';
+
 const _urlTypes = {SourceType.web, SourceType.aiChat, SourceType.video, SourceType.app};
 
 class _AddForm extends ConsumerStatefulWidget {
@@ -77,6 +81,49 @@ class _AddFormState extends ConsumerState<_AddForm> {
   NewSource? _pickedPdf;
   SplitSpec? _split;
   var _saving = false;
+
+  // Subjects and topics created from this form (design §10a).
+  final _newSubjects = <SubjectRow>[];
+  final _newTopics = <String, List<NodeRow>>{};
+
+  List<SubjectRow> get _subjects => [...widget.data.subjects, ..._newSubjects];
+  List<NodeRow> _topicsOf(String subjectId) => [
+        ...widget.data.topicsBySubject[subjectId] ?? const <NodeRow>[],
+        ..._newTopics[subjectId] ?? const <NodeRow>[],
+      ];
+
+  // Bumped after the "+ New" dialogs so the menus rebuild, showing the real
+  // selection rather than "+ New…" when the dialog is cancelled.
+  var _menus = 0;
+
+  Future<void> _newSubject() async {
+    final s = await showNewSubjectDialog(context);
+    if (!mounted) return;
+    setState(() => _menus++);
+    if (s == null) return;
+    setState(() {
+      _newSubjects.add(s);
+      _subjectId = s.id;
+      _topicId = null;
+    });
+  }
+
+  Future<void> _newTopic() async {
+    final name = await showNameDialog(context,
+        title: 'New topic', label: 'Topic name', action: 'Create');
+    if (!mounted) return;
+    setState(() => _menus++);
+    if (name == null) return;
+    final db = ref.read(appDatabaseProvider);
+    final id = await ref
+        .read(addItemProvider)(AddItemRequest(title: name, kind: NodeKind.topic, subjectId: _subjectId));
+    final topic = await db.nodesDao.byId(id);
+    if (topic == null || !mounted) return;
+    setState(() {
+      (_newTopics[_subjectId] ??= []).add(topic);
+      _topicId = id;
+    });
+  }
 
   NodeRow? get _parent => widget.data.parent;
 
@@ -168,8 +215,7 @@ class _AddFormState extends ConsumerState<_AddForm> {
 
   @override
   Widget build(BuildContext context) {
-    final d = widget.data;
-    final topics = d.topicsBySubject[_subjectId] ?? const [];
+    final topics = _topicsOf(_subjectId);
     final isTopic = _kind == NodeKind.topic;
     final base = _base ?? _taskKind.defaultBaseMinutes;
     const gap = SizedBox(height: 12);
@@ -202,28 +248,49 @@ class _AddFormState extends ConsumerState<_AddForm> {
         ),
         if (_parent == null) ...[
           gap,
-          DropdownButtonFormField<String>(
-            key: const Key('add-subject'),
-            initialValue: _subjectId,
-            decoration: const InputDecoration(labelText: 'Subject'),
-            items: [
-              for (final s in d.subjects) DropdownMenuItem(value: s.id, child: Text(s.name)),
-            ],
-            onChanged: (v) => setState(() {
-              _subjectId = v!;
-              _topicId = null;
-            }),
-          ),
-          if (!isTopic && topics.isNotEmpty) ...[
-            gap,
-            DropdownButtonFormField<String?>(
-              initialValue: _topicId,
-              decoration: const InputDecoration(labelText: 'Topic (optional)'),
+          // Keyed by the selection so that a subject or topic created from
+          // the menu shows as selected.
+          KeyedSubtree(
+            key: ValueKey('subject-$_subjectId-$_menus'),
+            child: DropdownButtonFormField<String>(
+              key: const Key('add-subject'),
+              initialValue: _subjectId,
+              decoration: const InputDecoration(labelText: 'Subject'),
               items: [
-                const DropdownMenuItem(value: null, child: Text('No topic')),
-                for (final t in topics) DropdownMenuItem(value: t.id, child: Text(t.title)),
+                for (final s in _subjects) DropdownMenuItem(value: s.id, child: Text(s.name)),
+                const DropdownMenuItem(
+                  key: Key('add-new-subject'),
+                  value: _newValue,
+                  child: Text('+ New subject…'),
+                ),
               ],
-              onChanged: (v) => setState(() => _topicId = v),
+              onChanged: (v) => v == _newValue
+                  ? _newSubject()
+                  : setState(() {
+                      _subjectId = v!;
+                      _topicId = null;
+                    }),
+            ),
+          ),
+          if (!isTopic) ...[
+            gap,
+            KeyedSubtree(
+              key: ValueKey('topic-$_subjectId-$_topicId-$_menus'),
+              child: DropdownButtonFormField<String?>(
+                key: const Key('add-topic'),
+                initialValue: _topicId,
+                decoration: const InputDecoration(labelText: 'Topic (optional)'),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('No topic')),
+                  for (final t in topics) DropdownMenuItem(value: t.id, child: Text(t.title)),
+                  const DropdownMenuItem(
+                    key: Key('add-new-topic'),
+                    value: _newValue,
+                    child: Text('+ New topic…'),
+                  ),
+                ],
+                onChanged: (v) => v == _newValue ? _newTopic() : setState(() => _topicId = v),
+              ),
             ),
           ],
         ],

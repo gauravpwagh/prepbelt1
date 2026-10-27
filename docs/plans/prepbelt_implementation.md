@@ -696,6 +696,16 @@ Starts after the Android internal test, and after the author answers the design'
 118. **CI** (Modify `.github/workflows/ci.yaml`): a macOS job that runs the app tests and `flutter build ios --no-codesign`, plus a check of the privacy manifest and the absence of networking entitlements.
 119. **Release docs** (Create `docs/release/RELEASE-ios.md`): signing, TestFlight, App Store privacy answers.
 
+### M10: organising items (design D15, §10a)
+
+120. **`app/lib/application/delete_item.dart`** (Modify): `DeleteItem(nodeId, keepChildren:)` returns a `DeleteReceipt` (rows as they were, copied sources, how many moved to the Inbox); `undo(receipt)` writes them back. `refile(db, node, subjectId, parentId, kind)` moves a node to the end of its new siblings and its whole subtree to the new subject.
+121. **`app/lib/application/move_item.dart`** (Create): `MoveItem(nodeId, MoveTarget)` with the rules of §10a: `canAttach`, `canAddChild`, a subtask made a task gets a copy of its old task's source.
+122. **`app/lib/application/save_exam.dart`** (Modify): `createSubject(name, examIds:)`, `renameSubject`, `deleteSubject(id, keepItems:)`; the Inbox is refused. **`nodes_dao.dart`** (Modify): `subtree`, `liveSubtree`, `allRoots`, `replaceNode`.
+123. **`app/lib/core/widgets/new_subject_dialog.dart`** (Create): `showNewSubjectDialog` (name and optional open exams) and `showNameDialog`. Used by the capture and Library features.
+124. **`features/capture`** (Modify): the Add form's subject and topic menus end with "+ New subject…" and "+ New topic…", and the topic menu always shows for tasks; Quick add and the Share sheet get a "New" chip. Created subjects and topics are kept in the form's state, so nothing typed is lost.
+125. **`features/item`** (Modify): the menu has Move… (`widgets/move_sheet.dart`, `moveChoicesProvider`) and Delete, which asks when the item has children and offers Undo. **`features/library`** (Modify): a menu per subject (Rename, Delete subject) and a New subject row.
+126. **Tests** (Modify `test/application/use_cases_test.dart`, Create `test/features/organize_test.dart`): the rules in the design's "Organising (D15)" test row.
+
 --------------------------------------------------------------------------------
 
 ## Verification Plan
