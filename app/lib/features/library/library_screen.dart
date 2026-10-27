@@ -16,6 +16,7 @@ class LibraryScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Library')),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab-library',
         tooltip: 'Add',
         onPressed: () => context.push('/add'),
         child: const Icon(Icons.add),

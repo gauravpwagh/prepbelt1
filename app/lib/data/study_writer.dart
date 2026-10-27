@@ -123,6 +123,18 @@ class StudyWriter {
         return undone;
       });
 
+  /// Imported history (design §8a step 4): appends the events in file order,
+  /// then re-derives `item_state` for each node. State in the file is never
+  /// trusted. Runs inside the importer's transaction.
+  Future<void> writeImported(List<StudyEvent> events) => _db.transaction(() async {
+        for (final e in events) {
+          await _db.into(_db.reviewEvents).insert(toEventRow(e));
+        }
+        for (final nodeId in {for (final e in events) e.nodeId}) {
+          await _db.itemStateDao.upsert(nodeId, deriveState(await _db.eventsDao.eventsFor(nodeId)));
+        }
+      });
+
   /// "Archive and remove" (design §8a): the only hard delete in the app.
   /// Removes every row of [subjectIds] in the design's order and clears the
   /// last-used settings that point at removed rows.

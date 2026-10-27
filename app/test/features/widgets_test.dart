@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prep_core/prep_core.dart';
 import 'package:prepbelt/app.dart';
 import 'package:prepbelt/core/providers.dart';
+import 'package:prepbelt/data/db/app_database.dart';
+import 'package:prepbelt/router.dart';
 import 'package:prepbelt/platform/share_receiver.dart';
 
 import '../application/app_helpers.dart';
@@ -189,6 +193,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Add to PrepBelt'), findsOneWidget);
     expect(find.text('Notes'), findsOneWidget);
+    await tearDownApp(tester);
+  });
+
+  testWidgets('Import screen offers one clash choice and imports (CUJ 10)', (tester) async {
+    await f.seedTree();
+    await f.db.examsDao.insertExam(ExamsCompanion.insert(
+        id: 'x', name: 'MPSC', examDate: day0.plusDays(60), createdAt: t0));
+    await f.db.subjectsDao.link('x', 'sub1');
+    final pkg = await c.read(examExporterProvider).build('x', PackageMode.structure, includeNotes: true);
+    late File file;
+    await tester.runAsync(() async {
+      final dir = await Directory.systemTemp.createTemp('prepbelt_import');
+      file = File('${dir.path}/MPSC.prepbelt.json');
+      await file.writeAsString(pkg.encode());
+    });
+    await pumpApp(tester);
+    c.read(routerProvider).push('/exams/import', extra: file);
+    // The preview reads the file with real IO: let it run between pumps.
+    for (var i = 0; i < 20 && find.byKey(const Key('import-go')).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 subjects · 5 items · structure only'), findsOneWidget);
+    expect(find.text('Add these items to your existing Polity'), findsOneWidget);
+    expect(find.text('Used by MPSC'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('clash-add-sub1')));
+    await tester.enterText(find.byKey(const Key('import-name')), 'MPSC 2028');
+    await tester.tap(find.byKey(const Key('import-go')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Imported 5 items'), findsOneWidget);
+    expect((await f.db.examsDao.all()).map((e) => e.name), containsAll(['MPSC', 'MPSC 2028']));
+    expect(await f.db.nodesDao.roots('sub1'), hasLength(4));
     await tearDownApp(tester);
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -136,7 +137,7 @@ class _PrepBeltAppState extends ConsumerState<PrepBeltApp>
     switch (kind) {
       case ExamFileShare(:final copy):
         router.go('/exams');
-        router.push('/exams/import', extra: copy);
+        router.push('/exams/import', extra: File(copy.cachePath));
       case CaptureShare():
         router.go('/today');
         await Future<void>.delayed(Duration.zero);

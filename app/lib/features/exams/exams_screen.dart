@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
 import '../../core/providers.dart';
+import 'archive_sheet.dart';
 import 'exam_form.dart';
+import 'export_sheet.dart';
+import 'import_screen.dart';
 import 'exams_providers.dart';
 
 class ExamsScreen extends ConsumerWidget {
@@ -13,8 +16,16 @@ class ExamsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(examsViewProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Exams')),
+      appBar: AppBar(title: const Text('Exams'), actions: [
+        IconButton(
+          key: const Key('exam-import'),
+          tooltip: 'Import',
+          icon: const Icon(Icons.file_download_outlined),
+          onPressed: () => importFromFolder(context, ref),
+        ),
+      ]),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab-exams',
         key: const Key('exam-add'),
         icon: const Icon(Icons.add),
         label: const Text('Exam'),
@@ -59,15 +70,24 @@ class _ExamTile extends ConsumerWidget {
         onSelected: (a) async {
           final save = ref.read(saveExamProvider);
           final plans = ref.read(buildTodayPlanProvider);
-          if (a == 'archive' || a == 'unarchive') {
-            await save.setArchived(e.id, archived: a == 'archive');
-            await plans.refresh();
+          switch (a) {
+            case 'unarchive':
+              await save.setArchived(e.id, archived: false);
+              await plans.refresh();
+            case 'archive':
+              await showArchiveSheet(context, entry);
+            case 'export':
+              await showExportSheet(context, entry);
+            case 'copy':
+              await showCopyAttemptDialog(context, entry);
           }
         },
         itemBuilder: (_) => [
+          const PopupMenuItem(value: 'export', child: Text('Export')),
+          const PopupMenuItem(value: 'copy', child: Text('Copy as new attempt')),
           PopupMenuItem(
             value: archived ? 'unarchive' : 'archive',
-            child: Text(archived ? 'Unarchive' : 'Archive (keep in app)'),
+            child: Text(archived ? 'Unarchive' : 'Archive…'),
           ),
         ],
       ),

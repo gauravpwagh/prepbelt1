@@ -69,6 +69,9 @@ class FakeFolderAccess implements FolderAccess {
   final written = <String, List<String>>{};
   String? nextPick;
 
+  /// Called after each write, with the file still in place.
+  Future<void> Function(String name, File file)? writeHook;
+
   void addTree(String name, Map<String, int> files) => trees['tree:$name'] = files;
 
   @override
@@ -108,6 +111,7 @@ class FakeFolderAccess implements FolderAccess {
     if (t == null) throw const FolderException(FolderError.noPermission, 'No access');
     t[name] = await file.length();
     (written[treeUri] ??= []).add(name);
+    await writeHook?.call(name, file);
   }
 
   @override

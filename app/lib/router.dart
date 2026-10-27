@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,7 @@ import 'features/capture/add_item_screen.dart';
 import 'features/capture/split_sheet.dart';
 import 'features/diagnostics/diagnostics_screen.dart';
 import 'features/exams/exams_screen.dart';
+import 'features/exams/import_screen.dart';
 import 'features/item/item_screen.dart';
 import 'features/library/library_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
@@ -17,9 +20,6 @@ import 'features/today/today_screen.dart';
 /// The root navigator, for sheets shown from outside the widget tree
 /// (the Finish sheet on launch and resume).
 final rootNavigatorKey = GlobalKey<NavigatorState>();
-
-/// Extra top-level routes from later milestones (e.g. `/exams/import`).
-final extraRoutesProvider = Provider<List<RouteBase>>((ref) => const []);
 
 /// Routes from design §10. While onboarding is not done every location
 /// redirects to `/onboarding` (plan item 49).
@@ -77,7 +77,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, s) => SplitScreen(taskId: s.pathParameters['id']!),
       ),
       GoRoute(path: '/diagnostics', builder: (context, state) => const DiagnosticsScreen()),
-      ...ref.read(extraRoutesProvider),
+      GoRoute(
+        path: '/exams/import',
+        builder: (context, s) => ImportScreen(file: s.extra! as File),
+      ),
     ],
   );
   ref.onDispose(router.dispose);

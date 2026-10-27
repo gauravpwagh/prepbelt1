@@ -24,6 +24,7 @@ dependencies:
   prep_core: any
   receive_sharing_intent: 1.9.0
   saf: 2.1.2
+  share_plus: ^13.3.1
   sqlite3: ^3.5.2
   timezone: ^0.11.2
   url_launcher: ^6.3.3

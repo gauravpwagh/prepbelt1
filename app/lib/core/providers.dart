@@ -8,12 +8,14 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
 
 import '../application/add_item.dart';
+import '../application/archive_and_remove.dart';
 import '../application/build_today_plan.dart';
 import '../application/capture_shared.dart';
 import '../application/catch_up.dart';
 import '../application/complete_onboarding.dart';
 import '../application/delete_item.dart';
 import '../application/discard_session.dart';
+import '../application/exam_exchange.dart';
 import '../application/explain_due.dart';
 import '../application/finish_session.dart';
 import '../application/grade_review.dart';
@@ -31,9 +33,12 @@ import '../data/backup/backup_service.dart';
 import '../data/backup/restore_service.dart';
 import '../data/db/app_database.dart';
 import '../data/db/db_file.dart';
+import '../data/exchange/exam_exporter.dart';
+import '../data/exchange/exam_importer.dart';
 import '../data/study_writer.dart';
 import '../platform/clock.dart';
 import '../platform/device_status.dart';
+import '../platform/file_sharer.dart';
 import '../platform/folder_access.dart';
 import '../platform/notification_port.dart';
 import '../platform/share_receiver.dart';
@@ -264,3 +269,36 @@ Future<void> afterRestore(ProviderContainer c) async {
   await c.read(reconcileNotificationsProvider)();
   c.read(onboardingDoneProvider.notifier).set(await settings.onboardingDone());
 }
+
+// ---- exam files ----
+
+final fileSharerProvider = Provider<FileSharer>((ref) => const SystemFileSharer());
+
+final examExporterProvider = Provider<ExamExporter>((ref) =>
+    ExamExporter(ref.watch(appDatabaseProvider), appVersion: appVersion, now: _now(ref)));
+
+final examImporterProvider = Provider<ExamImporter>((ref) => ExamImporter(
+    ref.watch(appDatabaseProvider), ref.watch(studyWriterProvider),
+    newId: ref.watch(idGeneratorProvider), now: _now(ref)));
+
+final exportExamProvider = Provider<ExportExam>((ref) => ExportExam(
+    ref.watch(examExporterProvider),
+    ref.watch(folderAccessProvider),
+    ref.watch(backupServiceProvider),
+    ref.watch(fileSharerProvider),
+    cacheDir: ref.watch(cacheDirProvider)));
+
+final importExamProvider = Provider<ImportExam>((ref) =>
+    ImportExam(ref.watch(examImporterProvider), ref.watch(buildTodayPlanProvider)));
+
+final copyAsNewAttemptProvider = Provider<CopyAsNewAttempt>((ref) => CopyAsNewAttempt(
+    ref.watch(examExporterProvider), ref.watch(examImporterProvider), ref.watch(buildTodayPlanProvider)));
+
+final archiveAndRemoveProvider = Provider<ArchiveAndRemove>((ref) => ArchiveAndRemove(
+    ref.watch(appDatabaseProvider),
+    ref.watch(examExporterProvider),
+    ref.watch(folderAccessProvider),
+    ref.watch(backupServiceProvider),
+    ref.watch(studyWriterProvider),
+    ref.watch(buildTodayPlanProvider),
+    cacheDir: ref.watch(cacheDirProvider)));

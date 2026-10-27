@@ -31,6 +31,7 @@ class TodayScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab-today',
         tooltip: 'Add',
         onPressed: () => context.push('/add'),
         child: const Icon(Icons.add),
